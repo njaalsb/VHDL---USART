@@ -15,7 +15,7 @@
 - Ferdigstilt testbenk og baud_gen
 - Simulert testbenk i modelsim, ser ut til å funke
 
-## Hva må gjøres til neste gang?
+### Hva må gjøres til neste gang?
 - Baud_gen må integreres i Rx
 - Må få R_x til å punktprøve med raten generert av baud_gen 
 - Detektere startbit på R_x
