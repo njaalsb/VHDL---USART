@@ -1,4 +1,4 @@
--- Kompilerer i Modelsim
+-- Kompilert og testet i modelsim
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -20,40 +20,41 @@ architecture verifier of baud_gen_tb is
     end component baud_gen;
 
     -- DUT signal
-    signal clk_in      : std_logic;
-    signal rst_in      : std_logic;
-    signal baud_clk_out : std_logic;
+    signal clk     : std_logic;
+    signal rst    : std_logic;
+    signal baud_clk : std_logic;
 
     begin
         -- mapper DUT signal til DUV
         i_baud_gen: component baud_gen
             port map (
-                clk => clk_in,
-                rst => rst_in,
-                baud_clk => baud_clk_out
+                clk => clk,
+                rst => rst,
+                baud_clk => baud_clk
             );
         
 
         -- Klokke-prosess
         p_clk: process
         begin
-            clk_in <= '0';
+            clk <= '0';
             wait for clk_per;
-            clk_in <= '1';
+            clk <= '1';
             wait for clk_per;
         end process p_clk;
 
         p_rst: process
         begin
-            rst_in <= '1';
-            wait for 25 ns;
-            rst_in <= '0';
+            rst <= '1';
+            wait for 15 ns;
+            rst <= '0';
             wait;
         end process p_rst;
 
         p_main: process 
             begin
                 -- Hva bør testes her?
+                wait for 10000 ns;
 
                 -- avslutter simuleringen
                 assert false report "Testbench finished" severity failure; 

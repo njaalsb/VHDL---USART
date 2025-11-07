@@ -1,4 +1,5 @@
--- Kompilerer i Modelsim
+-- Testet og kompilert i modelsim
+
 -- Baud generator til USART
 -- 8x oversampling incl (2x mtp aliasing)
 -- 9600 baud -> krever 153 600 sampling rate
@@ -33,9 +34,9 @@ begin
             if count0 /= CLK_DIV-1 then
                 count0 <= count0 + 1;
             else
+                ena <= not ena;
                 count0 <= 0;
                 -- resten av logikken må skje her...
-                ena <= not ena;
             end if;
 
             if ena = '1' then
