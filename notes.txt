@@ -1,0 +1,6 @@
+Hvordan skal baud_gen testes?
+- Må bekrefte at frekvensen blir riktig
+- Måle med oscilloskop?
+
+Funksjonalitet 
+- baud gen må bestemme hvor ofte Rx skal punktprøve 
