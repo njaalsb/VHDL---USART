@@ -2,18 +2,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 entity uart_ctrl is
     port (
         clk       : in std_logic;                            -- Klokke
         rstn      : in std_logic;                            -- Aktiv lav reset
         rx_data   : in std_logic_vector(7 downto 0);        -- Mottatt data
         rx_valid  : in std_logic;                            -- Indikator for gyldig mottatt data
+
         sevenseg_high  : out std_logic_vector(7 downto 0);         -- Øvre 7-segment
         sevenseg_low  : out std_logic_vector(7 downto 0);         -- nedre 7-segment
-        led_pulse : out std_logic                            -- Led på kortet (kort blink ved mottak)
+        led_pulse : out std_logic;                            -- Led på kortet (kort blink ved mottak)
     );
-end entity uart_ctrl;
+end entity uart_ctrl;  
 
 --=============================================================================
 ----------------------- Arkitektur ----------------------------------------------
@@ -70,9 +70,9 @@ begin
     elsif rising_edge(clk) then
         case state is
             when IDLE =>
-                if rx_valid = '1' then
+                if rx_valid = '1' then         -- nytt tegn mottatt
                     received_ascii <= rx_data; --viser ASCII verdi direkte på 7-segment display
-                    led_cnt <= 2_000_000;  -- Justerer etter klokkehastighet for ønsket LED puls lengde (20 ms)
+                    led_cnt <= 2_000_000;      -- Justerer etter klokkehastighet for ønsket LED puls lengde (20 ms)
 
                 elsif led_cnt > 0 then
                     led_cnt <= led_cnt - 1; -- tell ned LED pulsen
@@ -80,7 +80,7 @@ begin
                 else
                     led_pulse <= '0';       -- led av når nedtelling er ferdig
                 end if;
-                -- Vis ASCII-koden (hex): øvre og nedre del
+                -- Vis ASCII-koden (hex), øvre og nedre del
                 sevenseg_high <= hex_to_sevenseg(unsigned(received_ascii(7 downto 4)));
                 sevenseg_low  <= hex_to_sevenseg(unsigned(received_ascii(3 downto 0)));
         end case;
