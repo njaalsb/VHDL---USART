@@ -31,3 +31,14 @@
 ### Hva må gjøre til neste gang?
 - Lage testbenk og simulere
 - Kommentere koden ferdig
+
+## 11/11/2025
+- Fikk implementert baud_gen i sampler 
+- Komt et stykke på sampler 
+- Begynt på tilstandsdiagram for sampler, må utbedres
+
+### Hva må gjøres til neste gang?
+- Tilstandsdiagram for sampler
+- Fulføre og skrive tesbenk til sampler
+- Teste sampler i Modelsim
+- Ide: bruke baud_clk teller til å sample 16 ganger før å så gå videre til neste case
