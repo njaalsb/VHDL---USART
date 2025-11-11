@@ -20,3 +20,14 @@
 - Må få R_x til å punktprøve med raten generert av baud_gen 
 - Detektere startbit på R_x
 - Lage tilstandsdiagram for R_x
+
+## 9/11/25
+- Definert porter for mottak av rx_data og rx_valid
+- Implementert enkel tilstandsmaskin 
+- lagt til intern registervariabel reg_rx
+- lagt til LED-styring
+- Koblet mottat tegn direkte til 7-segmentdisplayet som ASCII-kode
+
+### Hva må gjøre til neste gang?
+- Lage testbenk og simulere
+- Kommentere koden ferdig

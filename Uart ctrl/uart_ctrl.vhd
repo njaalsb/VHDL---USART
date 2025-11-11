@@ -1,0 +1,95 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity uart_ctrl is
+    port (
+        clk       : in std_logic;                            -- Klokke
+        rstn      : in std_logic;                            -- Aktiv lav reset
+        rx_data   : in std_logic_vector(7 downto 0);        -- Mottatt data
+        rx_valid  : in std_logic;                            -- Indikator for gyldig mottatt data
+        baud_sel  : in std_logic_vector(3 downto 0);         -- Valg av baud rate (Brukes ikke enda)
+
+        sevenseg_high  : out std_logic_vector(7 downto 0);         -- Øvre 7-segment
+        sevenseg_low  : out std_logic_vector(7 downto 0);         -- nedre 7-segment
+        led_pulse : out std_logic;                            -- Led på kortet (kort blink ved mottak)
+        baud_value : out std_logic_vector(7 downto 0)               -- Baud rate verdi til baud generator (Brukes ikke enda)
+    );
+end entity uart_ctrl;  
+
+--=============================================================================
+----------------------- Arkitektur ----------------------------------------------
+--=============================================================================     
+
+
+architecture rtl of uart_ctrl is
+
+    type state_type is (IDLE);                                             -- Tilstander, nå: vent
+    signal state: state_type := IDLE;                                    -- Nåværende tilstand
+
+    signal led_cnt: integer range 0 to 2_000_000 := 0;                        -- Teller for LED puls varighet
+    signal received_ascii: std_logic_vector(7 downto 0) := (others => '0');     -- Lagrer siste mottatte ASCII verdi
+
+     -- Funksjon som oversetter 4-bits heksadesimalt tall til 7-segmentmønster
+    function hex_to_sevenseg(d : unsigned(3 downto 0)) return std_logic_vector is
+        variable y : std_logic_vector(7 downto 0);
+
+begin
+    case d is
+        when "0000" => y := "11000000"; -- 0
+        when "0001" => y := "11111001"; -- 1
+        when "0010" => y := "10100100"; -- 2
+        when "0011" => y := "10110000"; -- 3
+        when "0100" => y := "10011001"; -- 4
+        when "0101" => y := "10010010"; -- 5
+        when "0110" => y := "10000010"; -- 6
+        when "0111" => y := "11111000"; -- 7
+        when "1000" => y := "10000000"; -- 8
+        when "1001" => y := "10010000"; -- 9
+        when "1010" => y := "10001000"; -- A
+        when "1011" => y := "10000011"; -- b
+        when "1100" => y := "11000110"; -- C
+        when "1101" => y := "10100001"; -- d
+        when "1110" => y := "10000110"; -- E
+        when "1111" => y := "10001110"; -- F
+        when others => y := (others => '1'); -- slukket
+    end case;
+    return y;
+  end function;
+
+begin
+-- Hovedprosess som styrer visning og LED blink
+ process(clk, rstn)
+    begin   
+    if rstn = '0' then -- reset, nullstiller alt
+        state <= IDLE;
+        led_pulse <= '0';
+        baud_value <= (others => '0');
+        led_cnt <= 0;
+        received_ascii <= (others => '0');
+        sevenseg_high <= (others => '1'); --slukk display
+        sevenseg_low <= (others => '1');
+
+    elsif rising_edge(clk) then
+        case state is
+            when IDLE =>
+                if rx_valid = '1' then
+                    received_ascii <= rx_data; --viser ASCII verdi direkte på 7-segment display
+                    led_cnt <= 2_000_000;  -- Justerer etter klokkehastighet for ønsket LED puls lengde (20 ms)
+
+                elsif led_cnt > 0 then
+                    led_cnt <= led_cnt - 1; -- tell ned LED pulsen
+                    led_pulse <= '1';
+                else
+                    led_pulse <= '0';       -- led av når nedtelling er ferdig
+                end if;
+                -- Vis ASCII-koden (hex): øvre og nedre del
+                sevenseg_high <= hex_to_sevenseg(unsigned(received_ascii(7 downto 4)));
+                sevenseg_low  <= hex_to_sevenseg(unsigned(received_ascii(3 downto 0)));
+        end case;
+    end if;
+ end process;
+end architecture rtl;
+
+
+
