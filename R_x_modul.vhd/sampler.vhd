@@ -13,7 +13,8 @@ entity sampler is
         clk, ena, rst   : in std_logic;
         rx_in           : in std_logic;
         baud_clk        : in std_logic;
-        sb_flag         : out std_logic;
+        sb_flag         : out std_logic := 0;
+        rx_ready        : out std_logic := 0;
         rx_out          : out std_logic_vector(7 downto 0)
     );
 end entity sampler;
@@ -77,14 +78,16 @@ begin
                         elsif 16 <= counter then
                             -- nytt bit
                             if vote >= 3 then
-                                shift_reg(0) <= '1';
+                                -- bitshift til venstre 
+                                shift_reg <= shift_reg(6 downto 0) & '1'; 
+                                
                                 counter <= 0;
-                                -- bitshift til venstre somehow
                                 bit_count <= bit_count + 1;
                             else
-                                shift_reg(0) <= '0';
+                                -- bitshift til venstre
+                                shift_reg <= shift_reg(6 downto 0) & '0'; 
                                 counter <= 0;
-                                -- bitshift til venstre somehow
+                                
                                 bit_count <= bit_count + 1;
                             end if;
 
@@ -96,15 +99,14 @@ begin
 
                 when rx_ready => 
                     
-                     
-                        
-
+                    rx_out <= shift_reg;
+                    state <= idle;
 
                 when others =>
                     state <= idle;
                         --default case
             end case;
-        end if;
+        end if; 
     end process p1_process;
 
     p2_process: process(rx_in)
