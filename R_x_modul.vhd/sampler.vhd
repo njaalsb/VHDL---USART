@@ -13,8 +13,8 @@ entity sampler is
     port (
         clk, ena, rst   : in std_logic;
         rx_in           : in std_logic;
-        baud_clk        : in std_logic;
-        sb_flag         : out std_logic := 0;
+        baud_clk        : out std_logic;
+        sb_flag         : out std_logic;
         rx_ready        : out std_logic;
         rx_out          : out std_logic_vector(7 downto 0)
     );
@@ -56,8 +56,8 @@ begin
             
             case state is
                 when idle => 
-                    if baud_clk = '1' and rx_in = 0 then
-                        rx_ready <= 0;
+                    if baud_clk = '1' and rx_in = '0' then
+                        rx_ready <= '0';
                         counter <= 1;
                         state <= startbit_detected;
                     else 
@@ -80,7 +80,9 @@ begin
                         -- Dette skal i teorien skje 16/bit
                         counter <= counter + 1;
                         if 6 < counter AND counter < 12 then 
-                            vote <= vote + to_integer(unsigned(rx_in));
+                            if rx_in = '1' then 
+                                vote <= vote + 1;
+                            end if;
                         elsif 16 <= counter then
                             -- nytt bit
                             if vote >= 3 then
