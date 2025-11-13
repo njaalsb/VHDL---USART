@@ -36,9 +36,32 @@
 - Fikk implementert baud_gen i sampler 
 - Komt et stykke på sampler 
 - Begynt på tilstandsdiagram for sampler, må utbedres
+- Oppdaget problemer med klokkedomener og prosesser
 
 ### Hva må gjøres til neste gang?
 - Tilstandsdiagram for sampler
 - Fulføre og skrive tesbenk til sampler
 - Teste sampler i Modelsim
 - Ide: bruke baud_clk teller til å sample 16 ganger før å så gå videre til neste case
+
+## 12/11/2025
+- Fikk utbedret sampler, men gjenstår 6 feil ved forsøk på kompilering i modelsim.
+- Sannsynligvis "easy" fix, men mangler funksjonalitet for å ignorere stop-bit.
+- Fikk løst problemene knyttet til klokkedomene og konflikt mellom prosesser.
+
+### Hva må gjøres til neste gang?
+- Fikse funksjonalitet for å ignorere stop-bit
+- Løse feilmeldingene i modelsim 
+- Skrive testbenk til sampler 
+
+## 13/11/2025
+- Fikk sampler til å kompilere i Modelsim (!)
+- Fikk sampler tesbenken til å kompilere, men den fungerer ikke helt som forventet.
+- Får ikke til å sende test_byte inn til sampler, litt usikker på årsaken til dette.
+
+![Resultat fra første testbenk](image.png)
+
+### Hva må gjøres til neste gang?
+- Fikse testbenken til sampler
+- legge til mer funksjonalitet
+- Fikse problemer i sampler basert på tilbakemeldinger fra testbenk

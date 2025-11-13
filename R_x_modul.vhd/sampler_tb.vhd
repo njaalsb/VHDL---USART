@@ -3,3 +3,91 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
+entity sampler_tb is
+    generic (
+        test_byte : std_logic_vector(9 downto 0) :=  "0101101010"  
+    );
+end entity sampler_tb;
+
+architecture RTL of sampler_tb is
+
+    component sampler is
+        generic(
+            F_CLK : natural := 50_000_000
+        );
+        port (
+            clk, ena, rst   : in std_logic;
+            rx_in           : in std_logic;
+            baud_clk        : out std_logic;
+            sb_flag         : out std_logic;
+            rx_ready        : out std_logic;
+            rx_out          : out std_logic_vector(7 downto 0) 
+        );
+    end component sampler;
+      
+    -- Doot signals
+    signal clk      : std_logic;
+    signal rx_in    : std_logic;
+    signal ena      : std_logic;
+    signal rst      : std_logic;
+    signal baud_clk : std_logic;
+    signal sb_flag  : std_logic;
+    signal rx_ready : std_logic;
+    signal rx_out   : std_logic_vector(7 downto 0);
+
+    -- Signal for testbenk
+    signal tb_count : natural range 0 to 16;
+    signal bit_count: natural range 0 to 10;
+
+begin 
+    i_sampler : component sampler 
+        port map (
+            clk => clk,
+            rx_in => rx_in,
+            ena => ena,
+            rst => rst,
+            baud_clk => baud_clk,
+            sb_flag => sb_flag,
+            rx_ready => rx_ready,
+            rx_out => rx_out
+        );
+
+    -- Klokkeprosess
+    p_clk : process
+    begin
+        clk <= '1';
+        wait for 10 ps;
+        clk <= '0';
+        wait for 10 ps;
+    end process p_clk;
+           
+    -- Reset prosess, usikker på om denne er nødvendig, men lagt til PGA baud_gen modul
+    p_rst : process 
+    begin
+        rst <= '1';
+        wait for 5 ns;
+        rst <= '0';
+        wait;
+    end process p_rst;  
+        
+    p_rx_in : process
+    begin
+        wait for 10 ns;
+        if baud_clk = '1' then
+            tb_count <= tb_count + 1;
+            if tb_count >= 15 then
+                bit_count <=  bit_count + 1;
+            end if; 
+        end if;
+
+        if bit_count = 10 then 
+            bit_count <= 0;
+        else
+            rx_in <= test_byte(bit_count);
+        end if;
+
+    end process p_rx_in;
+
+
+end architecture RTL;
