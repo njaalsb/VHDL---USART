@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 
 entity sampler_tb is
     generic (
-        test_byte : std_logic_vector(9 downto 0) :=  "0101101010"  
+        constant test_byte : std_logic_vector(9 downto 0) := "1" & "01011010" & "0"   -- stop, data (LSB first), start
     );
 end entity sampler_tb;
 
@@ -27,14 +27,15 @@ architecture RTL of sampler_tb is
     end component sampler;
       
     -- Doot signals
+    -- Husk at for std_logic må det brukes fnutter '' for å representere logiske verdier
     signal clk      : std_logic;
-    signal rx_in    : std_logic;
+    signal rx_in    : std_logic := '1';
     signal ena      : std_logic;
     signal rst      : std_logic;
     signal baud_clk : std_logic;
-    signal sb_flag  : std_logic;
-    signal rx_ready : std_logic;
-    signal rx_out   : std_logic_vector(7 downto 0);
+    signal sb_flag  : std_logic := '0';
+    signal rx_ready : std_logic := '0';
+    signal rx_out   : std_logic_vector(7 downto 0) := "00000000";
 
     -- Signal for testbenk
     signal tb_count : natural range 0 to 16;
@@ -78,6 +79,7 @@ begin
             tb_count <= tb_count + 1;
             if tb_count >= 15 then
                 bit_count <=  bit_count + 1;
+                tb_count <= 0;
             end if; 
         end if;
 

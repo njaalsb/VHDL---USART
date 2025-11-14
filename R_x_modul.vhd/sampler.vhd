@@ -50,11 +50,12 @@ begin
         );
 
 
-    p1_process: process(baud_clk)
+    p1_process: process(clk)
     begin
         if rising_edge(clk) then
             
             case state is
+                -- Idle state hvor vi venter på startbit
                 when idle => 
                     if baud_clk = '1' and rx_in = '0' then
                         rx_ready <= '0';
@@ -71,8 +72,8 @@ begin
                     end if;
 
                     if counter >= 16 then 
-                        state <= sampling;
                         counter <= 0;
+                        state <= sampling;
                     end if;
 
                 when sampling => 
