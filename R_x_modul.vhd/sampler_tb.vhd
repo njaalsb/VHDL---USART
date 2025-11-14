@@ -6,7 +6,8 @@ use ieee.numeric_std.all;
 
 entity sampler_tb is
     generic (
-        constant test_byte : std_logic_vector(9 downto 0) := "1" & "01011010" & "0"   -- stop, data (LSB first), start
+        constant test_byte : std_logic_vector(9 downto 0) := "1" & "01011101" & "0";  -- stop, data (LSB first), start
+        bit_time  : time := 65.2 ns
     );
 end entity sampler_tb;
 
@@ -15,6 +16,7 @@ architecture RTL of sampler_tb is
     component sampler is
         generic(
             F_CLK : natural := 50_000_000
+            
         );
         port (
             clk, ena, rst   : in std_logic;
@@ -27,7 +29,6 @@ architecture RTL of sampler_tb is
     end component sampler;
       
     -- Doot signals
-    -- Husk at for std_logic må det brukes fnutter '' for å representere logiske verdier
     signal clk      : std_logic;
     signal rx_in    : std_logic := '1';
     signal ena      : std_logic;
@@ -72,24 +73,25 @@ begin
         wait;
     end process p_rst;  
         
-    p_rx_in : process
-    begin
-        wait for 10 ns;
-        if baud_clk = '1' then
-            tb_count <= tb_count + 1;
-            if tb_count >= 15 then
-                bit_count <=  bit_count + 1;
-                tb_count <= 0;
-            end if; 
-        end if;
+p_rx : process
+begin
+    rx_in <= '1'; wait for 100 ns;
 
-        if bit_count = 10 then 
-            bit_count <= 0;
-        else
-            rx_in <= test_byte(bit_count);
-        end if;
+    -- start bit
+    rx_in <= '0'; wait for bit_time;
 
-    end process p_rx_in;
+    -- data bits, LSB first
+    for i in 0 to 7 loop
+        rx_in <= test_byte(i);
+        wait for bit_time;
+    end loop;
+
+    -- stop bit
+    rx_in <= '1'; wait for bit_time;
+
+    wait;
+end process;
+
 
 
 end architecture RTL;

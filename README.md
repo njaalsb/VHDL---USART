@@ -65,3 +65,12 @@
 - Fikse testbenken til sampler
 - legge til mer funksjonalitet
 - Fikse problemer i sampler basert på tilbakemeldinger fra testbenk
+
+## 14/11/2025
+- simulert sampler
+- Testbenken ser ut til å virke bra
+- Sampler vil ikke bytte state på riktig tidspunkt, setter seg enten fast i startbit_detected eller teller for fort og hopper over hele venteperioden, litt usikker på hvordan dette skal løses
+
+### Hva må gjøres til neste gang?
+- Finne ut hvordan telleren i sampler i startbit_detected staten kan synkroniseres med baud_clk.
+- Etter det er fikset, teste mer og få timingen på plass og mer robuste overganger mellom de ulike tilstandene.

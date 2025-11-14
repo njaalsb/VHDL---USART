@@ -25,7 +25,7 @@ architecture RTL of sampler is
     type state_type is (idle, startbit_detected, sampling, rx_finished);
     signal state : state_type := idle;
 
-    signal counter  : natural range 0 to 15;
+    signal counter  : natural range 0 to 16;
 
     signal bit_count: natural range 0 to 7;
     signal vote     : natural range 0 to 5;
@@ -52,61 +52,73 @@ begin
 
     p1_process: process(clk)
     begin
-        if rising_edge(clk) then
+        if rst = '1' then
+            vote <= 0;
+            counter <= 0;
+            bit_count <= 0;
+            state <= idle;
+            rx_ready <= '0';
+
+        elsif rising_edge(clk) then
             
             case state is
                 -- Idle state hvor vi venter på startbit
                 when idle => 
-                    if baud_clk = '1' and rx_in = '0' then
+                    if rx_in = '0' then
                         rx_ready <= '0';
                         counter <= 1;
-                        state <= startbit_detected;
+                        if baud_clk = '1' then
+                            state <= startbit_detected;
+                        end if;
                     else 
                         counter <= 0;
                     end if;
 
                 when startbit_detected =>
                 -- vente antall ticks gitt av baud_clk 
-                    if baud_clk = '1' then
-                        counter <= counter + 1;
+                    if baud_clk = '1' and rising_edge(clk) then
+                        if counter < 16 then
+                            counter <= counter + 1;
+                        else 
+                            counter <= 0;
+                            state <= sampling;
+                        end if;
                     end if;
 
-                    if counter >= 16 then 
-                        counter <= 0;
-                        state <= sampling;
-                    end if;
+                when sampling =>
+    		    if rising_edge(baud_clk) then   -- FIX #1: synchronous logic
 
-                when sampling => 
-                    if baud_clk = '1' then
-                        -- Dette skal i teorien skje 16/bit
-                        counter <= counter + 1;
-                        if 6 < counter AND counter < 12 then 
-                            if rx_in = '1' then 
-                                vote <= vote + 1;
-                            end if;
-                        elsif 16 <= counter then
-                            -- nytt bit
-                            if vote >= 3 then
-                                -- bitshift til venstre 
-                                shift_reg <= '1' & shift_reg(7 downto 1); 
-                                
-                                counter <= 0;
-                                bit_count <= bit_count + 1;
-                                vote <= 0;
+        		-- sample window: counter 7–11
+        		if (counter > 6) and (counter < 12) then
+            		    if rx_in = '1' then
+  		                vote <= vote + 1;
+       			     end if;
+
+        		-- end of oversampling window?
+        		elsif counter = 15 then      -- FIX: use exact value
+       			    counter <= 0;
+
+  		             -- store the sampled bit
+            		    if vote >= 3 then
+                                shift_reg <= '1' & shift_reg(7 downto 1);
                             else
-                                -- bitshift til venstre
-                                shift_reg <= '0' &shift_reg(7 downto 1); 
-                                
-                                counter <= 0;
-                                bit_count <= bit_count + 1;
-                                vote <= 0;
+                                shift_reg <= '0' & shift_reg(7 downto 1);
                             end if;
 
-                            if bit_count = 8 then
+                            vote <= 0;
+                            bit_count <= bit_count + 1;
+
+                            -- check if all 8 bits sampled
+                            if bit_count = 7 then    -- FIX #2: correct stop condition
                                 state <= rx_finished;
                             end if;
+
+                        else
+                            counter <= counter + 1;
                         end if;
-                    end if; 
+
+                    end if;
+
 
                 when rx_finished => 
                     
@@ -114,6 +126,7 @@ begin
                     rx_ready <= '1';
                     bit_count <= 0;
                     state <= idle;
+                    counter <= 0;
 
                 when others =>
                     state <= idle;
