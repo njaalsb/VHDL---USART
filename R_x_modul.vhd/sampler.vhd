@@ -50,7 +50,7 @@ begin
         );
 
 
-    p1_process: process(clk)
+    p1_process: process(baud_clk)
     begin
         if rst = '1' then
             vote <= 0;
@@ -59,44 +59,40 @@ begin
             state <= idle;
             rx_ready <= '0';
 
-        elsif rising_edge(clk) then
-            
+        else    
             case state is
                 -- Idle state hvor vi venter på startbit
                 when idle => 
                     if rx_in = '0' then
                         rx_ready <= '0';
                         counter <= 1;
-                        if baud_clk = '1' then
-                            state <= startbit_detected;
-                        end if;
+                        -- Bytt state 
+                        state <= startbit_detected;
                     else 
                         counter <= 0;
                     end if;
 
                 when startbit_detected =>
                 -- vente antall ticks gitt av baud_clk 
-                    if baud_clk = '1' and rising_edge(clk) then
-                        if counter < 16 then
-                            counter <= counter + 1;
-                        else 
-                            counter <= 0;
-                            state <= sampling;
-                        end if;
+                
+                    if counter < 16 then
+                        counter <= counter + 1;
+                    else 
+                        counter <= 0;
+                        state <= sampling;
                     end if;
+                
 
                 when sampling =>
-    		    if rising_edge(baud_clk) then   -- FIX #1: synchronous logic
-
-        		-- sample window: counter 7–11
-        		if (counter > 6) and (counter < 12) then
+        		    -- sample window: counter 7–11
+        		    if (counter > 6) and (counter < 12) then
             		    if rx_in = '1' then
-  		                vote <= vote + 1;
-       			     end if;
+  		                    vote <= vote + 1;
+       			        end if;
 
-        		-- end of oversampling window?
-        		elsif counter = 15 then      -- FIX: use exact value
-       			    counter <= 0;
+        		    -- end of oversampling window?
+        		    elsif counter = 16 then      -- FIX: use exact value
+       			        counter <= 0;
 
   		             -- store the sampled bit
             		    if vote >= 3 then
@@ -109,14 +105,12 @@ begin
                             bit_count <= bit_count + 1;
 
                             -- check if all 8 bits sampled
-                            if bit_count = 7 then    -- FIX #2: correct stop condition
+                            if bit_count = 8 then    -- FIX #2: correct stop condition
                                 state <= rx_finished;
                             end if;
 
-                        else
-                            counter <= counter + 1;
-                        end if;
-
+                    else
+                        counter <= counter + 1;
                     end if;
 
 
