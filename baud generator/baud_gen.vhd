@@ -22,7 +22,6 @@ end entity baud_gen;
 
 architecture RTL of baud_gen is 
     -- signal
-    signal tick      : std_logic := '0';
     signal count0   : natural range 0 to CLK_DIV-1; --count er signal fordi den skal oppdatere seg en gang etter hver gjennomkjøring 
 begin
     p1: process(clk)
@@ -30,21 +29,16 @@ begin
         -- aktiv høy reset
         if rst = '1' or ena = '0' then
             count0 <= 0;
+            baud_clk <= '0';
             -- Resetter telleren hvis rst er aktiv eller ena er ikke aktiv 
         elsif rising_edge(clk) then
             -- inkrementerer counter til divider når den er ulik divider
             if count0 /= CLK_DIV-1 then
                 count0 <= count0 + 1;
-            else
-                tick <= not tick;
-                count0 <= 0;
-                -- resten av logikken må skje her...
-            end if;
-
-            if tick = '1' then
-                baud_clk <= '1';
-            else 
                 baud_clk <= '0';
+            else
+                count0 <= 0;
+                baud_clk <= '1';  -- Pulse high for one clock cycle
             end if;
         end if;
     end process;

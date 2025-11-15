@@ -74,3 +74,15 @@
 ### Hva må gjøres til neste gang?
 - Finne ut hvordan telleren i sampler i startbit_detected staten kan synkroniseres med baud_clk.
 - Etter det er fikset, teste mer og få timingen på plass og mer robuste overganger mellom de ulike tilstandene.
+
+## 15/11/2025
+- Endelig fått sampler til å funke! 
+- Hovedproblemet var multi-driver "konflikter" (signaler som ble endret flere ganger i samme syklus), hovedsaklig knyttet til de ulike tellerene i sampling tilstanden 
+- Måtte også gjøre endringer i baud_gen for å få klokkeperioden til å bli 326
+- Testbenk ble også endret for å få riktig tidsforhold mellom generert systemklokke og test signalet som ble sendt inn i sampler
+![Test av sampler](image-2.png)
+
+### Hva må gjøres til neste gang?
+- Begynne på avr kode
+- Lage et blokkskjema til fungerende sampler
+- Begynne å planlegge TX, kontroll og top-layer entitet

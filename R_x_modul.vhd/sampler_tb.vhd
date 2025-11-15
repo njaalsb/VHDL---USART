@@ -7,7 +7,7 @@ use ieee.numeric_std.all;
 entity sampler_tb is
     generic (
         constant test_byte : std_logic_vector(9 downto 0) := "1" & "01011101" & "0";  -- stop, data (LSB first), start
-        bit_time  : time := 65.2 ns
+        bit_time  : time := 104.32 ns  -- 16 baud_clk ticks * 6.52 ns per tick
     );
 end entity sampler_tb;
 
@@ -31,7 +31,7 @@ architecture RTL of sampler_tb is
     -- Doot signals
     signal clk      : std_logic;
     signal rx_in    : std_logic := '1';
-    signal ena      : std_logic;
+    signal ena      : std_logic := '1';  -- Enable baud generator
     signal rst      : std_logic;
     signal baud_clk : std_logic;
     signal sb_flag  : std_logic := '0';
