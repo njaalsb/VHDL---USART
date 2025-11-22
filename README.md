@@ -42,3 +42,13 @@
 - Fulføre og skrive tesbenk til sampler
 - Teste sampler i Modelsim
 - Ide: bruke baud_clk teller til å sample 16 ganger før å så gå videre til neste case
+
+## 22.11.2025
+- Trolig ferdig med "må" kravene for ctrl modulen
+- Sender mottatt tegn tilbake
+- Sender et forhåndsfinert tegn ved knappetrykk
+- Fortsatt bare i Idle, trengs egt flere tilstander?
+
+### Hva må gjøres til neste gang?
+- Skrive tb til oppdatert kode
+- Simulere i Modelsim

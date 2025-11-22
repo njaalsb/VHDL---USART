@@ -1,3 +1,9 @@
+-- Ctrl for UART kommunikasjon
+-- Mottar data via UART, viser mottatt ASCII-kode på 7-segment display
+-- Sender også et forhåndsdefinert tegn ved mottak eller knappetrykk
+
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -9,9 +15,13 @@ entity uart_ctrl is
         rstn      : in std_logic;                            -- Aktiv lav reset
         rx_data   : in std_logic_vector(7 downto 0);        -- Mottatt data
         rx_valid  : in std_logic;                            -- Indikator for gyldig mottatt data
+        tx_busy   : in std_logic;                            -- Indikator for at sender er opptatt
+        btn_char : in std_logic;                               -- Knapp for å sende forhåndsdefinert tegn
         sevenseg_high  : out std_logic_vector(7 downto 0);         -- Øvre 7-segment
         sevenseg_low  : out std_logic_vector(7 downto 0);         -- nedre 7-segment
         led_pulse : out std_logic                            -- Led på kortet (kort blink ved mottak)
+        tx_data   : out std_logic_vector(7 downto 0);        -- Sendt data
+        tx_start  : out std_logic,                           -- Start sending av data
     );
 end entity uart_ctrl;
 
@@ -25,8 +35,11 @@ architecture rtl of uart_ctrl is
     type state_type is (IDLE);                                             -- Tilstander, nå: vent
     signal state: state_type := IDLE;                                    -- Nåværende tilstand
 
+    constant BUTTON_TX_CHAR = std_logic_vector(7 downto 0) := x"55";  -- ASCII for 'U'
+
     signal led_cnt: integer range 0 to 2_000_000 := 0;                        -- Teller for LED puls varighet
     signal received_ascii: std_logic_vector(7 downto 0) := (others => '0');     -- Lagrer siste mottatte ASCII verdi
+    signal btn_char_last: std_logic := '0';                                        -- Lagrer forrige knappestatus
 
      -- Funksjon som oversetter 4-bits heksadesimalt tall til 7-segmentmønster
     function hex_to_sevenseg(d : unsigned(3 downto 0)) return std_logic_vector is
@@ -63,29 +76,53 @@ begin
         state <= IDLE;
         led_pulse <= '0';
         led_cnt <= 0;
+
         received_ascii <= (others => '0');
-        sevenseg_high <= (others => '1'); --slukk display
+        sevenseg_high <= (others => '1'); --slukker display
         sevenseg_low <= (others => '1');
 
+        tx_start <= '0';
+        tx_data <= (others => '0');
+        btn_char_last <= '0';
+
     elsif rising_edge(clk) then
+        tx_start <= '0';
         case state is
             when IDLE =>
                 if rx_valid = '1' then
-                    received_ascii <= rx_data; --viser ASCII verdi direkte på 7-segment display
+                    received_ascii <= rx_data; --lagrer mottatt data (buffer)
                     led_cnt <= 2_000_000;  -- Justerer etter klokkehastighet for ønsket LED puls lengde (20 ms)
+                
+                    if tx_busy = '0' then
+                        tx_data <= BUTTON_TX_CHAR;
+                        tx_data <= rx_data;
+                        tx_start <= '1';
+                    end if;
+                end if;
 
-                elsif led_cnt > 0 then
-                    led_cnt <= led_cnt - 1; -- tell ned LED pulsen
+                if (btn_char = '1' and btn_char_last = '0') then
+                    -- knappetrykk oppdaget, send forhåndsdefinert tegn hvis sender ikke er opptatt
+                    if tx_busy = '0' then
+                        tx_data <= BUTTON_TX_CHAR;
+                        tx_start <= '1';
+                    end if;
+                end if;
+
+            when others =>
+                null;
+        end case;
+
+                if led_cnt > 0 then
+                    led_cnt <= led_cnt - 1; -- teller ned LED pulsen
                     led_pulse <= '1';
                 else
                     led_pulse <= '0';       -- led av når nedtelling er ferdig
                 end if;
-                -- Vis ASCII-koden (hex): øvre og nedre del
+                -- Viser ASCII-koden (hex): øvre og nedre del
                 sevenseg_high <= hex_to_sevenseg(unsigned(received_ascii(7 downto 4)));
                 sevenseg_low  <= hex_to_sevenseg(unsigned(received_ascii(3 downto 0)));
-        end case;
-    end if;
- end process;
+            end if;
+    end process;
 end architecture rtl;
 
 

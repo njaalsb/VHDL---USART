@@ -84,7 +84,7 @@ begin
         wait until rising_edge(clk);
 
         wait until led_pulse = '1';
-        report "Testbench ferdig" severity failure; -- avslutter simuleringen
+        report "Testbenk ferdig" severity failure; -- avslutter simuleringen
         wait;
     end process p_main;
 end architecture verifier;
