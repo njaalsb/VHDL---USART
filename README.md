@@ -87,6 +87,13 @@
 - Lage et blokkskjema til fungerende sampler
 - Begynne å planlegge TX, kontroll og top-layer entitet
 
-## hei
+## 25/11/205
+- Vi har tatt en liten pause fra jobbingen, på grunn av radio-eksamen
+- PC-trøbbel har hindret noe særlig framgang i dag, men satser på å løse det asap
+- Avtalt møte i morgen og lagt plan for en skikkelig innspurt på prosjektet. 
+- Planlagt AVR-modul og testing
 
-- hallo
+### Hva må gjøres til neste gang?
+- Komme skikkelig i gang med AVR modul
+- Begynne å skrive TX og testbenk til TX
+- Fikse PC'en til Elise :'( 
