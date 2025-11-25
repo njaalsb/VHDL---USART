@@ -86,3 +86,7 @@
 - Begynne på avr kode
 - Lage et blokkskjema til fungerende sampler
 - Begynne å planlegge TX, kontroll og top-layer entitet
+
+## hei
+
+- hallo
