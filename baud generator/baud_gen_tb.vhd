@@ -55,7 +55,7 @@ architecture verifier of baud_gen_tb is
 
         p_ena: process 
         begin
-            ena <= '0'
+            ena <= '0';
             wait for 20 ns;
             ena <= '1';
             wait;

@@ -36,6 +36,7 @@
 - Fikk implementert baud_gen i sampler 
 - Komt et stykke på sampler 
 - Begynt på tilstandsdiagram for sampler, må utbedres
+- Oppdaget problemer med klokkedomener og prosesser
 
 ### Hva må gjøres til neste gang?
 - Tilstandsdiagram for sampler
@@ -43,12 +44,56 @@
 - Teste sampler i Modelsim
 - Ide: bruke baud_clk teller til å sample 16 ganger før å så gå videre til neste case
 
-## 22.11.2025
-- Trolig ferdig med "må" kravene for ctrl modulen
-- Sender mottatt tegn tilbake
-- Sender et forhåndsfinert tegn ved knappetrykk
-- Fortsatt bare i Idle, trengs egt flere tilstander?
+## 12/11/2025
+- Fikk utbedret sampler, men gjenstår 6 feil ved forsøk på kompilering i modelsim.
+- Sannsynligvis "easy" fix, men mangler funksjonalitet for å ignorere stop-bit.
+- Fikk løst problemene knyttet til klokkedomene og konflikt mellom prosesser.
 
 ### Hva må gjøres til neste gang?
-- Skrive tb til oppdatert kode
-- Simulere i Modelsim
+- Fikse funksjonalitet for å ignorere stop-bit
+- Løse feilmeldingene i modelsim 
+- Skrive testbenk til sampler 
+
+## 13/11/2025
+- Fikk sampler til å kompilere i Modelsim (!)
+- Fikk sampler tesbenken til å kompilere, men den fungerer ikke helt som forventet.
+- Får ikke til å sende test_byte inn til sampler, litt usikker på årsaken til dette.
+
+![Resultat fra første testbenk](image.png)
+
+### Hva må gjøres til neste gang?
+- Fikse testbenken til sampler
+- legge til mer funksjonalitet
+- Fikse problemer i sampler basert på tilbakemeldinger fra testbenk
+
+## 14/11/2025
+- simulert sampler
+- Testbenken ser ut til å virke bra
+- Sampler vil ikke bytte state på riktig tidspunkt, setter seg enten fast i startbit_detected eller teller for fort og hopper over hele venteperioden, litt usikker på hvordan dette skal løses
+
+### Hva må gjøres til neste gang?
+- Finne ut hvordan telleren i sampler i startbit_detected staten kan synkroniseres med baud_clk.
+- Etter det er fikset, teste mer og få timingen på plass og mer robuste overganger mellom de ulike tilstandene.
+
+## 15/11/2025
+- Endelig fått sampler til å funke! 
+- Hovedproblemet var multi-driver "konflikter" (signaler som ble endret flere ganger i samme syklus), hovedsaklig knyttet til de ulike tellerene i sampling tilstanden 
+- Måtte også gjøre endringer i baud_gen for å få klokkeperioden til å bli 326
+- Testbenk ble også endret for å få riktig tidsforhold mellom generert systemklokke og test signalet som ble sendt inn i sampler
+![Test av sampler](image-2.png)
+
+### Hva må gjøres til neste gang?
+- Begynne på avr kode
+- Lage et blokkskjema til fungerende sampler
+- Begynne å planlegge TX, kontroll og top-layer entitet
+
+## 25/11/205
+- Vi har tatt en liten pause fra jobbingen, på grunn av radio-eksamen
+- PC-trøbbel har hindret noe særlig framgang i dag, men satser på å løse det asap
+- Avtalt møte i morgen og lagt plan for en skikkelig innspurt på prosjektet. 
+- Planlagt AVR-modul og testing
+
+### Hva må gjøres til neste gang?
+- Komme skikkelig i gang med AVR modul
+- Begynne å skrive TX og testbenk til TX
+- Fikse PC'en til Elise :'( 
