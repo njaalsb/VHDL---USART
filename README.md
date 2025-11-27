@@ -97,3 +97,11 @@
 - Komme skikkelig i gang med AVR modul
 - Begynne å skrive TX og testbenk til TX
 - Fikse PC'en til Elise :'( 
+
+## 26/11/205
+- Fikk fiksa PC'en til Elise
+- Lite annen fremgang 
+
+### Hva må gjøres til neste gang?
+- Tx må utvikles videre
+- Samme gjelder AVR-modul
