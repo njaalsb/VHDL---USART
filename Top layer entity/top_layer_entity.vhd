@@ -44,7 +44,6 @@ architecture RTL of top_layer_entity is
             clk, ena, rst   : in std_logic;
             rx_in           : in std_logic;
             baud_clk        : out std_logic;
-            sb_flag         : out std_logic;
             rx_ready        : out std_logic; 
             rx_out          : out std_logic_vector(7 downto 0) 
         );
