@@ -13,8 +13,7 @@ entity sampler is
     port (
         clk, ena, rst   : in std_logic;
         rx_in           : in std_logic;
-        baud_clk        : out std_logic;
-        sb_flag         : out std_logic;
+        baud_clk        : in std_logic;
         rx_ready        : out std_logic;
         rx_out          : out std_logic_vector(7 downto 0)
     );
@@ -31,25 +30,7 @@ architecture RTL of sampler is
     signal vote     : integer range 0 to 7 := 0;
     signal shift_reg: std_logic_vector(7 downto 0);
 
-    -- Oppretter komponenten ti baud_gen i sampler
-    component baud_gen 
-        port(
-            ena, clk, rst   : in std_logic;
-            baud_clk        : out std_logic
-        );
-    end component baud_gen;
-
 begin
-    -- Instansierer baud_gen i sampleren
-    i_baud_gen: component baud_gen
-        port map (
-            clk => clk,
-            ena => ena, 
-            rst => rst,
-            baud_clk => baud_clk 
-        );
-
-
 p1_process: process(baud_clk, rst)
     variable next_counter : natural;
 begin
@@ -80,11 +61,9 @@ begin
             when startbit_detected =>
                 if counter < 16 then
                     counter <= counter + 1;
-                    sb_flag <= '1';
                 else
                     counter <= 1;
                     state   <= sampling;
-                    sb_flag <= '0';
                 end if;
 
             when sampling =>
