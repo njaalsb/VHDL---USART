@@ -47,7 +47,7 @@ architecture RTL of transmitter is
                         
                         if div_count = tick_time then
                             -- bitshift mot høyre (ny LSB)
-                            shift_reg <= shift_right(unsigned(shift_reg));
+                            shift_reg <= '1' & shift_reg(9 downto 1);
                             div_count <= 0;
                             tx_count <= tx_count + 1;
                         elsif div_count /= tick_time then
@@ -66,6 +66,7 @@ architecture RTL of transmitter is
                         -- sette flag for å indikere at transmisjonen er fullført
                         tx_fin <= '1';
                         shift_reg <= "1000000000";
+                        tx_state <= IDLE;
 
                     when others =>
                         tx_state <= IDLE;
