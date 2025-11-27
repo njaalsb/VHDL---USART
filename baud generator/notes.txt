@@ -6,3 +6,6 @@ Funksjonalitet
 - baud gen må bestemme hvor ofte Rx skal punktprøve 
 
 Mismatch baud rate -> framing errors
+
+Getting startet with USART, S. 7
+Vår initielle konfigurasjon - "The most common USART configuration is referred to as “9600 8N1”" 
