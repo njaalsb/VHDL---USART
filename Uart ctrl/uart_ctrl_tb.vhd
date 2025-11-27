@@ -16,6 +16,7 @@ architecture verifier of uart_ctrl_tb is
             rx_valid  : in std_logic;                            -- Indikator for gyldig mottatt data
             tx_busy : in std_logic;
             btn_char : in std_logic;
+            btn_string : in std_logic;
 
             sevenseg_high  : out std_logic_vector(7 downto 0);         -- Øvre 7-segment
             sevenseg_low  : out std_logic_vector(7 downto 0);         -- nedre 7-segment
@@ -32,6 +33,7 @@ architecture verifier of uart_ctrl_tb is
     signal rx_valid : std_logic := '0';
     signal tx_busy : std_logic := '0';
     signal btn_char : std_logic := '0';
+    signal btn_string : std_logic := '0';
 
     signal sevenseg_high  : std_logic_vector(7 downto 0);
     signal sevenseg_low   : std_logic_vector(7 downto 0);
@@ -49,6 +51,7 @@ begin
             rx_valid  => rx_valid,
             tx_busy => tx_busy,
             btn_char => btn_char,
+            btn_string => btn_string,
             sevenseg_high  => sevenseg_high,
             sevenseg_low   => sevenseg_low,
             led_pulse => led_pulse,
@@ -91,10 +94,8 @@ begin
 
         wait until rising_edge(clk);
         rx_valid <= '0';
-
         wait until tx_start = '1';
         tx_busy <= '1';
-
         wait for 10 * clk_per;
         tx_busy <= '0';
 
@@ -106,25 +107,44 @@ begin
 
         wait until rising_edge(clk);
         rx_valid <= '0';
-
         wait until tx_start = '1';
         tx_busy <= '1';
-
         wait for 10 * clk_per;
         tx_busy <= '0';
-        
-        -- Test 3: knapp
+
+        -- Test 3: knapp og enkelttegn
         wait until rising_edge(clk);
         btn_char <= '1';
-
         wait until rising_edge(clk);
         btn_char <= '0';
-
         wait until tx_start = '1';
         tx_busy <= '1';
-
         wait for 10 * clk_per;
         tx_busy <= '0'; 
+
+
+        -- TEST 4: streng med btn_string        
+        wait for 5 * clk_per;
+        
+        wait until rising_edge(clk);
+        btn_string <= '1';
+        wait until rising_edge(clk);
+        btn_string <= '0';
+
+        -- Nå forventer vi 8 påfølgende tx_start-pulser (1 per tegn)
+        for i in 0 to 7 loop 
+            -- vent til uart sender neste tegn
+            wait until tx_start = '1';
+            tx_busy <= '1';
+
+            -- Simuler at uart bruker litt tid på å sende tegnet
+            wait for 10 * clk_per;
+            tx_busy <= '0';
+
+            wait until rising_edge(clk);
+        end loop;
+
+        wait for 20 * clk_per;
 
         report "Testbenk ferdig" severity note; -- avslutter simuleringen
         wait;
