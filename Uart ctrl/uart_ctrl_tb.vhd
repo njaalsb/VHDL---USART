@@ -14,10 +14,14 @@ architecture verifier of uart_ctrl_tb is
             rstn    : in std_logic;                            -- Aktiv lav reset
             rx_data   : in std_logic_vector(7 downto 0);        -- Mottatt data
             rx_valid  : in std_logic;                            -- Indikator for gyldig mottatt data
+            tx_busy : in std_logic;
+            btn_char : in std_logic;
 
             sevenseg_high  : out std_logic_vector(7 downto 0);         -- Øvre 7-segment
             sevenseg_low  : out std_logic_vector(7 downto 0);         -- nedre 7-segment
-            led_pulse : out std_logic                             -- Led på kortet (kort blink ved mottak)
+            led_pulse : out std_logic;                             -- Led på kortet (kort blink ved mottak)
+            tx_data : out std_logic_vector(7 downto 0);
+            tx_start : out std_logic
         );
     end component uart_ctrl;
 
@@ -26,10 +30,14 @@ architecture verifier of uart_ctrl_tb is
     signal rstn      : std_logic := '1';
     signal rx_data   : std_logic_vector(7 downto 0) := (others => '0');
     signal rx_valid : std_logic := '0';
+    signal tx_busy : std_logic := '0';
+    signal btn_char : std_logic := '0';
 
     signal sevenseg_high  : std_logic_vector(7 downto 0);
     signal sevenseg_low   : std_logic_vector(7 downto 0);
     signal led_pulse    : std_logic;
+    signal tx_data : std_logic_vector(7 downto 0) := (others => '0');
+    signal tx_start : std_logic := '0';
 
 begin
     -- Mapper DUT signaler til DUV
@@ -39,9 +47,13 @@ begin
             rstn      => rstn,
             rx_data   => rx_data,
             rx_valid  => rx_valid,
+            tx_busy => tx_busy,
+            btn_char => btn_char,
             sevenseg_high  => sevenseg_high,
             sevenseg_low   => sevenseg_low,
-            led_pulse => led_pulse
+            led_pulse => led_pulse,
+            tx_data => tx_data,
+            tx_start => tx_start
         );
 
     -- Klokke prosess
@@ -67,24 +79,54 @@ begin
         wait until rstn = '1';
         wait until rising_edge(clk);
 
+        btn_char <= '0';
+        rx_valid <= '0';
+        tx_busy <= '0';
+
+        wait until rising_edge(clk);
         -- test 1: Send ASCII 'A' (0x41)
         rx_data <= "01000001"; -- ASCII 'A' = 0x41
-        rx_valid <= '1';    
+        rx_valid <= '1'; 
+        tx_busy <= '0';  
+
         wait until rising_edge(clk);
         rx_valid <= '0';
-        wait until rising_edge(clk);
 
-        wait until led_pulse = '1';
-        wait for 200 us;
+        wait until tx_start = '1';
+        tx_busy <= '1';
+
+        wait for 10 * clk_per;
+        tx_busy <= '0';
+
+        wait until rising_edge(clk);
         -- Test 2: Send ASCII '1' (0x31)
         rx_data <= "00110001"; -- ASCII '1' = 0x31
         rx_valid <= '1';
+        tx_busy <= '0';
+
         wait until rising_edge(clk);
         rx_valid <= '0';
-        wait until rising_edge(clk);
 
-        wait until led_pulse = '1';
-        report "Testbenk ferdig" severity failure; -- avslutter simuleringen
+        wait until tx_start = '1';
+        tx_busy <= '1';
+
+        wait for 10 * clk_per;
+        tx_busy <= '0';
+        
+        -- Test 3: knapp
+        wait until rising_edge(clk);
+        btn_char <= '1';
+
+        wait until rising_edge(clk);
+        btn_char <= '0';
+
+        wait until tx_start = '1';
+        tx_busy <= '1';
+
+        wait for 10 * clk_per;
+        tx_busy <= '0'; 
+
+        report "Testbenk ferdig" severity note; -- avslutter simuleringen
         wait;
     end process p_main;
 end architecture verifier;

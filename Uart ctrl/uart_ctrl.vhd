@@ -19,9 +19,9 @@ entity uart_ctrl is
         btn_char : in std_logic;                               -- Knapp for å sende forhåndsdefinert tegn
         sevenseg_high  : out std_logic_vector(7 downto 0);         -- Øvre 7-segment
         sevenseg_low  : out std_logic_vector(7 downto 0);         -- nedre 7-segment
-        led_pulse : out std_logic                            -- Led på kortet (kort blink ved mottak)
+        led_pulse : out std_logic;                         -- Led på kortet (kort blink ved mottak)
         tx_data   : out std_logic_vector(7 downto 0);        -- Sendt data
-        tx_start  : out std_logic,                           -- Start sending av data
+        tx_start  : out std_logic                           -- Start sending av data
     );
 end entity uart_ctrl;
 
@@ -32,10 +32,10 @@ end entity uart_ctrl;
 
 architecture rtl of uart_ctrl is
 
-    type state_type is (IDLE);                                             -- Tilstander, nå: vent
-    signal state: state_type := IDLE;                                    -- Nåværende tilstand
+    type state_type is (IDLE, BUSY);                                             -- Tilstander, vent og opptatt
+    signal state: state_type;                                    -- Nåværende tilstand
 
-    constant BUTTON_TX_CHAR = std_logic_vector(7 downto 0) := x"55";  -- ASCII for 'U'
+    constant BUTTON_TX_CHAR : std_logic_vector(7 downto 0) := x"55";  -- ASCII for 'U'
 
     signal led_cnt: integer range 0 to 2_000_000 := 0;                        -- Teller for LED puls varighet
     signal received_ascii: std_logic_vector(7 downto 0) := (others => '0');     -- Lagrer siste mottatte ASCII verdi
@@ -89,27 +89,29 @@ begin
         tx_start <= '0';
         case state is
             when IDLE =>
-                if rx_valid = '1' then
+                if (rx_valid = '1' and tx_busy = '0') then
                     received_ascii <= rx_data; --lagrer mottatt data (buffer)
                     led_cnt <= 2_000_000;  -- Justerer etter klokkehastighet for ønsket LED puls lengde (20 ms)
-                
-                    if tx_busy = '0' then
-                        tx_data <= BUTTON_TX_CHAR;
-                        tx_data <= rx_data;
-                        tx_start <= '1';
-                    end if;
-                end if;
+                    tx_data <= rx_data;
+                    tx_start <= '1';
+                    state <= BUSY;
 
-                if (btn_char = '1' and btn_char_last = '0') then
+                elsif (btn_char = '1' and btn_char_last = '0') and (tx_busy = '0') then
                     -- knappetrykk oppdaget, send forhåndsdefinert tegn hvis sender ikke er opptatt
-                    if tx_busy = '0' then
+                        received_ascii <= BUTTON_TX_CHAR;
+                        led_cnt <= 2_000_000;
                         tx_data <= BUTTON_TX_CHAR;
                         tx_start <= '1';
+                        state <= BUSY;
+               end if;       
+               
+            when BUSY => 
+                if tx_busy = '0' then
+                       state <= IDLE;
                     end if;
-                end if;
 
             when others =>
-                null;
+                state <= IDLE;
         end case;
 
                 if led_cnt > 0 then
@@ -121,6 +123,7 @@ begin
                 -- Viser ASCII-koden (hex): øvre og nedre del
                 sevenseg_high <= hex_to_sevenseg(unsigned(received_ascii(7 downto 4)));
                 sevenseg_low  <= hex_to_sevenseg(unsigned(received_ascii(3 downto 0)));
+                btn_char_last <= btn_char;
             end if;
     end process;
 end architecture rtl;
