@@ -65,6 +65,7 @@ architecture RTL of transmitter is
                         tx_out <= '1';
                         -- sette flag for å indikere at transmisjonen er fullført
                         tx_fin <= '1';
+                        shift_reg <= "1000000000";
 
                     when others =>
                         tx_state <= IDLE;
