@@ -111,10 +111,10 @@ architecture RTL of top_layer_entity is
         i_transmitter : component transmitter
             port map (
                 baud_clk => baud,
-                tx_ready => ctrl_flag,  -- ctrl tells tx to start
+                tx_ready => ctrl_flag,  -- ctrl gir beskjed til Tx om at den kan starte
                 tx_reg => ctrl_to_tx,
                 tx_out => tx,
-                tx_fin => tx_flag       -- tx tells ctrl it's done
+                tx_fin => tx_flag       -- tx forteller ctrl at den er ferdig
             );
 
         i_uart_ctrl : component uart_ctrl
