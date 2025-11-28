@@ -11,7 +11,7 @@ entity sampler is
         F_CLK : natural := 50_000_000
     );
     port (
-        clk, ena, rst   : in std_logic;
+        clk, rst   : in std_logic;
         rx_in           : in std_logic;
         baud_clk        : in std_logic;
         rx_ready        : out std_logic;

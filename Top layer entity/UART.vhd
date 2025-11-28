@@ -41,7 +41,7 @@ architecture RTL of top_layer_entity is
             F_CLK : natural := 50_000_000
         );
         port (
-            clk, ena, rst   : in std_logic;
+            clk, rst   : in std_logic;
             rx_in           : in std_logic;
             baud_clk        : in std_logic;
             rx_ready        : out std_logic; 
@@ -100,7 +100,6 @@ architecture RTL of top_layer_entity is
                 baud_clk => baud,   --baud fra baud_gen 
                 rx_in => rx,        -- sampler inngang til rx_pin
                 clk => clk,
-                ena => ena,
                 rst => rst,
                 rx_ready => rx_flag, -- flag til ctrl
                 rx_out => rx_to_ctrl -- motatt byte til ctrl 
@@ -120,7 +119,7 @@ architecture RTL of top_layer_entity is
         i_uart_ctrl : component uart_ctrl
             port map(
                 clk => clk,
-                rstn => not rst,        -- Invert: uart_ctrl uses active-low reset
+                rstn => rst,        -- Invert: uart_ctrl uses active-low reset
                 rx_data => rx_to_ctrl,
                 rx_valid => rx_flag,
                 tx_busy => tx_flag,

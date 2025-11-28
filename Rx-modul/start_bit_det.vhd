@@ -7,6 +7,7 @@ use ieee.numeric_std.all;
 entity start_bit_det is 
     generic (
         -- kan stå tom en så lenge
+        p : natural := 1;
     );
     port (
         clk, ena, rst   : in std_logic;
