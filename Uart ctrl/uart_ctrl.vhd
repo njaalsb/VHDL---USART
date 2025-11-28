@@ -125,8 +125,8 @@ begin
                     sending_string <= '0';
                     state <= BUSY;
 
-                -- Enkelttegn: knapp med rising edge    
-                elsif (btn_char = '0' and btn_char_last = '0') and (tx_busy = '0') then
+                -- Enkelttegn: knapp med falling edge (active-low button pressed)
+                elsif (btn_char = '0' and btn_char_last = '1') and (tx_busy = '0') then
                     -- knappetrykk oppdaget, send forhåndsdefinert tegn hvis sender ikke er opptatt
                     received_ascii <= CHAR_TO_TX;
                     led_cnt <= 2_000_000;
@@ -135,8 +135,8 @@ begin
                     sending_string <= '0';
                     state <= BUSY;
 
-                -- Streng: knapp med rising edge
-                elsif (btn_string = '1' and btn_string_last = '0') and (tx_busy = '0') then
+                -- Streng: knapp med falling edge (active-low button pressed)
+                elsif (btn_string = '0' and btn_string_last = '1') and (tx_busy = '0') then
                     sending_string <= '1';
                     string_idx <= 0;
                     tx_data <= STRING_TO_TX(0);
