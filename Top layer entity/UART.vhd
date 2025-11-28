@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 -- instansierer top layer entitet
-entity top_layer_entity is 
+entity UART is 
     -- Alle portene korresponderer til fysiske pinner på FPGA'en
     port (
         -- Felles
@@ -23,9 +23,9 @@ entity top_layer_entity is
         -- TX
         tx  : out std_logic
     );
-end entity top_layer_entity;
+end entity UART;
 
-architecture RTL of top_layer_entity is
+architecture RTL of UART is
     -- signal, disse skal koble alle komponentene sammen 
     -- VIKTIG med deskriptive navn og kommentarer(!) 
     signal baud         : std_logic;

@@ -126,7 +126,7 @@ begin
                     state <= BUSY;
 
                 -- Enkelttegn: knapp med rising edge    
-                elsif (btn_char = '1' and btn_char_last = '0') and (tx_busy = '0') then
+                elsif (btn_char = '0' and btn_char_last = '0') and (tx_busy = '0') then
                     -- knappetrykk oppdaget, send forhåndsdefinert tegn hvis sender ikke er opptatt
                     received_ascii <= CHAR_TO_TX;
                     led_cnt <= 2_000_000;
