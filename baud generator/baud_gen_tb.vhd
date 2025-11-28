@@ -13,7 +13,6 @@ architecture verifier of baud_gen_tb is
 
     component baud_gen 
         port (
-            ena : in std_logic;
             clk : in std_logic;
             rst : in std_logic;
             baud_clk : out std_logic 
@@ -29,7 +28,6 @@ architecture verifier of baud_gen_tb is
         -- mapper DUT signal til DUV
         i_baud_gen: component baud_gen
             port map (
-                ena => ena,
                 clk => clk,
                 rst => rst,
                 baud_clk => baud_clk
@@ -52,14 +50,6 @@ architecture verifier of baud_gen_tb is
             rst <= '0';
             wait;
         end process p_rst;
-
-        p_ena: process 
-        begin
-            ena <= '0';
-            wait for 20 ns;
-            ena <= '1';
-            wait;
-        end process p_ena;
 
         p_main: process 
             begin

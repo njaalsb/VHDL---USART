@@ -95,7 +95,7 @@ begin
 -- Hovedprosess som styrer visning og LED blink
  process(clk, rstn)
     begin   
-    if rstn = '1' then -- reset, nullstiller alt
+    if rstn = '0' then -- reset, nullstiller alt
         state <= IDLE;
         led_pulse <= '0';
         led_cnt <= 0;

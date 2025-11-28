@@ -27,7 +27,7 @@ begin
     p1: process(clk)
     begin
         -- aktiv høy reset
-        if rst = '1' or ena = '0' then
+        if rst = '0' or ena = '0' then
             count0 <= 0;
             baud_clk <= '0';
             -- Resetter telleren hvis rst er aktiv eller ena er ikke aktiv 

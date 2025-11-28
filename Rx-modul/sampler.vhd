@@ -35,7 +35,7 @@ p1_process: process(baud_clk, rst)
     variable next_counter : natural;
 begin
     -- ASYNKRON RESET
-    if rst = '1' then
+    if rst = '0' then
         vote      <= 0;
         counter   <= 0;
         bit_count <= 0;
