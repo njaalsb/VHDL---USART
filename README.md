@@ -110,15 +110,6 @@
 - har lagt til en state "busy"
 - fungerer bra mellom bytting av tilstander
 - stimuli 1 og 2 fungerer bra (tegn) men test 3 fungerer ikke?
-- må være noe feil med btn_char
+- må være noe feil med btn_char 
 
 ![Simulering av tb](<Skjermbilde 2025-11-27 164421.png>)
-
-- Tx-modulen er ferdigstillt og testet i Modelsim
-- Top layer modulen er også ferdig, men ikke testet
-
-### Hva må gjøres til neste gang?
-- Top layer modul må testes i Modelsim
-- Testbenk må skrives til top layer modul
-- Vi må sjekke at alle modulene kompilerer i Quartus
-- Fortsette på AVR modulen, forhåpentligvis ferdigstille den
