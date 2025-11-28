@@ -1,6 +1,6 @@
 -- Ctrl for UART kommunikasjon
 -- Mottar data via UART, viser mottatt ASCII-kode på 7-segment display
--- Sender også et forhåndsdefinert tegn ved mottak eller knappetrykk
+-- Sender også et forhåndsdefinert tegn/streng ved mottak eller knappetrykk
 
 
 

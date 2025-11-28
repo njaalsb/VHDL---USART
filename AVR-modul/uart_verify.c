@@ -21,24 +21,24 @@
 #define USART3_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 * (float)BAUD_RATE)) + 0.5)
 
 
-#define LED_PIN PIN5_bm  //PF5
+#define LED_PIN PIN3_bm  //PF5
 
 
 void LED_init(void) {
-    PORTF.DIRSET = LED_PIN;   // PF5 som utgang
-    PORTF.OUTSET = LED_PIN;   // LED av (active-low)
+    PORTB.DIRSET = LED_PIN;   // PB3 som utgang
+    PORTB.OUTSET = LED_pin;   // LED av (active-low)
 }
 
 void LED_green(void) {
-    PORTF.OUTCLR = LED_PIN;   // LED på (fast lys)
+    PORTB.OUTCLR = LED_pin;   // LED på (fast lys)
 }
 
 void LED_red(void) {
     //Blinkefeil: send 3 blink
     for (uint8_t i = 0; i < 3; i++) {
-        PORTF.OUTCLR = LED_PIN;   // ON
+        PORTB.OUTCLR = LED_PIN;   // ON
         _delay_ms(150);
-        PORTF.OUTSET = LED_PIN;   // OFF
+        PORTB.OUTSET = LED_PIN;   // OFF
         _delay_ms(150);
     }
 }
