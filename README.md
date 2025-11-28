@@ -110,9 +110,6 @@
 - har lagt til en state "busy"
 - fungerer bra mellom bytting av tilstander
 - stimuli 1 og 2 fungerer bra (tegn) men test 3 fungerer ikke?
-- må være noe feil med btn_char
-- Fått lagt inn streng og det fungerer
-- mer arbeid enn jeg trodde 
+- må være noe feil med btn_char 
 
 ![Simulering av tb](<Skjermbilde 2025-11-27 164421.png>)
-![Simulering med streng](image-3.png)
