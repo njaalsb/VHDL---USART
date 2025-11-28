@@ -110,6 +110,8 @@
 - har lagt til en state "busy"
 - fungerer bra mellom bytting av tilstander
 - stimuli 1 og 2 fungerer bra (tegn) men test 3 fungerer ikke?
-- må være noe feil med btn_char 
+- må være noe feil med btn_char
+- Kan nå sende en forhåndsdefinert streng med 8 tegn
+<img width="1467" height="686" alt="Skjermbilde 2025-11-27 223729" src="https://github.com/user-attachments/assets/f9dafada-5914-49d3-a766-a344e0e25765" />
 
 ![Simulering av tb](<Skjermbilde 2025-11-27 164421.png>)
