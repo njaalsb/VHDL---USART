@@ -29,6 +29,9 @@ architecture RTL of sampler is
     signal bit_count: integer range 0 to 7;
     signal vote     : integer range 0 to 7 := 0;
     signal shift_reg: std_logic_vector(7 downto 0);
+    
+    -- Input synchronization to avoid metastability
+    signal rx_sync  : std_logic_vector(1 downto 0) := "11";
 
 begin
 p1_process: process(baud_clk, rst)
@@ -42,16 +45,20 @@ begin
         state     <= idle;
         rx_ready  <= '0';
         shift_reg <= (others => '0');
+        rx_sync   <= "11";
 
     -- SYNSKRON LOGIKK
     elsif rising_edge(baud_clk) then
+        -- Synchronize input to avoid metastability
+        rx_sync <= rx_sync(0) & rx_in;
+        
         next_counter := counter;
 
         case state is
 
             when idle =>
-                if rx_in = '0' then
-                    rx_ready <= '0';
+                rx_ready <= '0';
+                if rx_sync(1) = '0' then
                     counter  <= 1;
                     state    <= startbit_detected;
                 else
@@ -62,19 +69,20 @@ begin
                 if counter < 16 then
                     counter <= counter + 1;
                 else
-                    counter <= 1;
+                    counter <= 0;
                     state   <= sampling;
+                    vote    <= 0;
                 end if;
 
             when sampling =>
-                if (counter > 6) and (counter < 12) then
-                    if rx_in = '1' then
+                if (counter >= 7) and (counter <= 11) then
+                    if rx_sync(1) = '1' then
                         vote <= vote + 1;
                     end if;
                     next_counter := counter + 1;
 
                 elsif counter = 16 then
-                    next_counter := 0;
+                    next_counter := 1;
          	
 
                     -- store the received bit
