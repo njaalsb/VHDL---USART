@@ -28,7 +28,7 @@ architecture verifier of uart_ctrl_tb is
 
     -- DUT signaler
     signal clk     : std_logic := '0';
-    signal rstn      : std_logic := '1';
+    signal rstn      : std_logic := '0';
     signal rx_data   : std_logic_vector(7 downto 0) := (others => '0');
     signal rx_valid : std_logic := '0';
     signal tx_busy : std_logic := '0';
@@ -79,7 +79,7 @@ begin
     p_main: process 
     begin
         -- vent til reset er ferdig
-        wait until rstn = '1';
+        wait until rstn = '0';
         wait until rising_edge(clk);
 
         btn_char <= '0';
