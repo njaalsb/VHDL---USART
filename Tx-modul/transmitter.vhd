@@ -24,7 +24,7 @@ architecture RTL of transmitter is
     signal tx_count : natural range 0 to 10 := 0;
     signal div_count: natural range 0 to 15 := 0;
 
-    signal shift_reg: std_logic_vector(9 downto 0) := "1000000000";
+    signal shift_reg: std_logic_vector(9 downto 0) := (others => '1');
 
     begin
         pt:process(baud_clk)
@@ -34,11 +34,15 @@ architecture RTL of transmitter is
                 case tx_state is 
                     when IDLE => 
                         tx_out <= '1';
+                        tx_fin <= '1';
                         -- gjør ingenting
                         if tx_ready = '1' then
-                            shift_reg(8 downto 1) <= tx_reg;
+                            -- Load: start bit (0) + data + stop bit (1)
+                            shift_reg <= '1' & tx_reg & '0';
                             tx_state <= TRANSMIT;
                             tx_fin <= '0';
+                            tx_count <= 0;
+                            div_count <= 0;
                         end if;
 
                     when TRANSMIT =>
@@ -50,12 +54,13 @@ architecture RTL of transmitter is
                             shift_reg <= '1' & shift_reg(9 downto 1);
                             div_count <= 0;
                             tx_count <= tx_count + 1;
-                        elsif div_count /= tick_time then
+                            
+                            -- Check if we've sent all 10 bits (start + 8 data + stop)
+                            if tx_count = 9 then
+                                tx_state <= FINISH;
+                            end if;
+                        else
                             div_count <= div_count + 1;
-                        end if;
-
-                        if tx_count = 10 then
-                            tx_state <= FINISH;
                         end if;
 
                     when FINISH =>
@@ -65,7 +70,7 @@ architecture RTL of transmitter is
                         tx_out <= '1';
                         -- sette flag for å indikere at transmisjonen er fullført
                         tx_fin <= '1';
-                        shift_reg <= "1000000000";
+                        shift_reg <= (others => '1');
                         tx_state <= IDLE;
 
                     when others =>
