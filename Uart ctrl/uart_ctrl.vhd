@@ -1,6 +1,6 @@
 -- Ctrl for UART kommunikasjon
 -- Mottar data via UART, viser mottatt ASCII-kode på 7-segment display
--- Sender også et forhåndsdefinert tegn/streng ved mottak eller knappetrykk
+-- Sender også et forhåndsdefinert tegn ved mottak eller knappetrykk
 
 
 
@@ -11,6 +11,7 @@ use ieee.numeric_std.all;
 
 entity uart_ctrl is
     port (
+        mode      : in std_logic;   -- Bytter mellom loop-back og knapp-modus
         clk       : in std_logic;                            -- Klokke
         rstn      : in std_logic;                            -- Aktiv lav reset
         rx_data   : in std_logic_vector(7 downto 0);         -- Mottatt data
@@ -34,18 +35,24 @@ end entity uart_ctrl;
 architecture rtl of uart_ctrl is
 
     
-    type state_type is (IDLE, BUSY);                                             -- Tilstander, vent og opptatt
+    type state_type is (IDLE, BUSY, BUTTON);                                             -- Tilstander, vent og opptatt
     signal state: state_type;                                    -- Nåværende tilstand
 
    
     constant CHAR_TO_TX : std_logic_vector(7 downto 0) := x"55";  -- ASCII for 'U'
 
-    signal led_cnt: integer range 0 to 2_000_000 := 0;                        -- Teller for LED puls varighet
+    signal led_cnt: integer range 0 to 1_000_000 := 0;                        -- Teller for LED puls varighet
     signal received_ascii: std_logic_vector(7 downto 0) := (others => '0');     -- Lagrer siste mottatte ASCII verdi
     
     
     signal btn_char_last: std_logic := '0';                                        -- Lagrer forrige knappestatus
     signal btn_string_last : std_logic := '0';
+    
+    -- Debounce counters (50 MHz / 50000 = 1ms debounce time)
+    signal btn_char_stable: std_logic := '1';
+    signal btn_string_stable: std_logic := '1';
+    signal btn_char_cnt: integer range 0 to 50000 := 0;
+    signal btn_string_cnt: integer range 0 to 50000 := 0;
 
     type string_array is array (0 to 7) of std_logic_vector(7 downto 0);
     constant STRING_TO_TX   : string_array := (
@@ -102,6 +109,10 @@ begin
 
         btn_char_last <= '0';
         btn_string_last <= '0';
+        btn_char_stable <= '1';
+        btn_string_stable <= '1';
+        btn_char_cnt <= 0;
+        btn_string_cnt <= 0;
         
         sending_string <= '0';
         string_idx <= 0;
@@ -114,52 +125,119 @@ begin
         tx_data <= (others => '0');
 
     elsif rising_edge(clk) then
-        tx_start <= '0';
-        case state is
-            when IDLE =>
-                if (rx_valid = '1' and tx_busy = '0') then
-                    received_ascii <= rx_data; --lagrer mottatt data (buffer)
-                    led_cnt <= 2_000_000;  -- Justerer etter klokkehastighet for ønsket LED puls lengde (20 ms)
-                    tx_data <= rx_data;   -- Loopback hvis TX er ledig
-                    tx_start <= '1';     -- Opptatt
-                    sending_string <= '0';
-                    state <= BUSY;
+        -- Debounce logic for btn_char
+        if btn_char = btn_char_stable then
+            btn_char_cnt <= 0;
+        else
+            if btn_char_cnt = 50000 then
+                btn_char_stable <= btn_char;
+                btn_char_cnt <= 0;
+            else
+                btn_char_cnt <= btn_char_cnt + 1;
+            end if;
+        end if;
+        
+        -- Debounce logic for btn_string
+        if btn_string = btn_string_stable then
+            btn_string_cnt <= 0;
+        else
+            if btn_string_cnt = 50000 then
+                btn_string_stable <= btn_string;
+                btn_string_cnt <= 0;
+            else
+                btn_string_cnt <= btn_string_cnt + 1;
+            end if;
+        end if;
 
-                -- Enkelttegn: knapp med falling edge (active-low button pressed)
-                elsif (btn_char = '0' and btn_char_last = '1') and (tx_busy = '0') then
+        case state is
+            when BUTTON =>
+                tx_start <= '0';
+                
+                -- Check if mode switch changed back to loopback mode
+                if mode = '0' then
+                    state <= IDLE;
+                    btn_char_last <= btn_char_stable;
+                    btn_string_last <= btn_string_stable;
+                    
+                elsif (btn_char_stable = '0' and btn_char_last = '1') and (tx_busy = '0') then
                     -- knappetrykk oppdaget, send forhåndsdefinert tegn hvis sender ikke er opptatt
                     received_ascii <= CHAR_TO_TX;
-                    led_cnt <= 2_000_000;
+                    led_cnt <= 1_000_000;
                     tx_data <= CHAR_TO_TX;
                     tx_start <= '1';
                     sending_string <= '0';
                     state <= BUSY;
 
                 -- Streng: knapp med falling edge (active-low button pressed)
-                elsif (btn_string = '0' and btn_string_last = '1') and (tx_busy = '0') then
+                elsif (btn_string_stable = '0' and btn_string_last = '1') and (tx_busy = '0') then
                     sending_string <= '1';
                     string_idx <= 0;
                     tx_data <= STRING_TO_TX(0);
                     tx_start <= '1';
                     state <= BUSY;
-               end if;       
+                    
+                else
+                    -- Only update button state when no edge detected
+                    btn_char_last <= btn_char_stable;
+                    btn_string_last <= btn_string_stable;
+                end if;
+
+            when IDLE =>
+                tx_start <= '0';
+                
+                -- Check if mode switch changed to button mode
+                if mode = '1' then
+                    state <= BUTTON;
+                    btn_char_last <= btn_char_stable;
+                    btn_string_last <= btn_string_stable;
+                    
+                elsif (rx_valid = '1' and tx_busy = '0') then
+                    received_ascii <= rx_data; --lagrer mottatt data (buffer)
+                    led_cnt <= 1_000_000;  -- Justerer etter klokkehastighet for ønsket LED puls lengde (20 ms)
+                    tx_data <= rx_data;   -- Loopback hvis TX er ledig
+                    tx_start <= '1';     -- Opptatt
+                    sending_string <= '0';
+                    state <= BUSY;
+                    
+                else
+                    -- Only update button state when no action taken
+                    btn_char_last <= btn_char_stable;
+                    btn_string_last <= btn_string_stable;
+                end if;
+                -- Enkelttegn: knapp med falling edge (active-low button pressed)
+                       
                
-            when BUSY => 
+            when BUSY =>
+                -- Hold tx_start high until transmitter acknowledges (tx_busy goes high)
+                if tx_busy = '1' then
+                    tx_start <= '0';
+                end if;
+                
                 if tx_busy = '0' then
 
                     if sending_string = '0' then    -- Det var bare ett tegn
-                       state <= IDLE;
+                       -- Return to appropriate state based on mode
+                       if mode = '1' then
+                           state <= BUTTON;
+                       else
+                           state <= IDLE;
+                       end if;
                        
                     else
                         -- vi er i streng modus
                         if string_idx = 7 then
                         -- siste tegn i STRING_TO_TX er sendt
                             sending_string <= '0';
-                            state <= IDLE;
+                            -- Return to appropriate state based on mode
+                            if mode = '1' then
+                                state <= BUTTON;
+                            else
+                                state <= IDLE;
+                            end if;
                         else
                         -- Send neste tegn i strengen
                             string_idx <= string_idx + 1;
-                            led_cnt <= 2_000_000;
+                            led_cnt <= 1_000_000;
                             tx_data <= STRING_TO_TX(string_idx + 1); 
                             tx_start <= '1';
                         end if;
@@ -182,8 +260,6 @@ begin
                 -- Viser ASCII-koden (hex): øvre og nedre del
                 sevenseg_high <= hex_to_sevenseg(unsigned(received_ascii(7 downto 4)));
                 sevenseg_low  <= hex_to_sevenseg(unsigned(received_ascii(3 downto 0)));
-                btn_char_last <= btn_char;
-                btn_string_last <= btn_string;
             end if;
     end process;
 end architecture rtl;
