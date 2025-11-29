@@ -9,16 +9,17 @@ entity UART is
         -- Felles
         clk         : in std_logic;
         rst         : in std_logic;
-        ena         : in std_logic;
-
+        
         -- RX
         rx          : in std_logic;
 
         -- CTRL
         sev_seg_high: out std_logic_vector(7 downto 0);
         sev_seg_low : out std_logic_vector(7 downto 0);
-        btn_pin    : in std_logic;
+        btn_char_pin    : in std_logic;
+        btn_string_pin  : in std_logic;
         led_pin   : out std_logic;
+        mode_switch : in std_logic;
 
         -- TX
         tx  : out std_logic
@@ -52,7 +53,6 @@ architecture RTL of UART is
     -- Baud gen:
     component baud_gen 
         port (
-            ena : in std_logic;
             clk : in std_logic;
             rst : in std_logic;
             baud_clk : out std_logic 
@@ -62,7 +62,8 @@ architecture RTL of UART is
     -- UART CTRL:
     component uart_ctrl is
         port (
-            clk, rstn, rx_valid, tx_busy, btn_char  : in std_logic;                            
+            clk, rstn, rx_valid, tx_busy, btn_char, btn_string  : in std_logic; 
+            mode                                    : in std_logic;                           
             rx_data                                 : in std_logic_vector(7 downto 0);        
             sevenseg_high, sevenseg_low, tx_data    : out std_logic_vector(7 downto 0);       
             led_pulse, tx_start                     : out std_logic                           
@@ -90,7 +91,6 @@ architecture RTL of UART is
         i_baud_gen : component baud_gen
             port map (
                 clk     => clk, --Global systemklokke
-                ena     => ena, --Global enable
                 rst     => rst, --Global reset
                 baud_clk=> baud --kobler baud_clk output til baud signal
             );
@@ -119,15 +119,17 @@ architecture RTL of UART is
         i_uart_ctrl : component uart_ctrl
             port map(
                 clk => clk,
-                rstn => rst,        -- Invert: uart_ctrl uses active-low reset
+                rstn => rst,        -- Active-low reset
                 rx_data => rx_to_ctrl,
                 rx_valid => rx_flag,
-                tx_busy => tx_flag,
-                btn_char => btn_pin,
+                tx_busy => not tx_flag,  -- tx_fin='1' means idle, so NOT busy
+                btn_char => btn_char_pin,
+                btn_string => btn_string_pin,
                 sevenseg_high => sev_seg_high,
                 sevenseg_low => sev_seg_low,
                 led_pulse => led_pin,
                 tx_data => ctrl_to_tx,
-                tx_start => ctrl_flag
+                tx_start => ctrl_flag,
+                mode => mode_switch
             );            
 end architecture RTL;
