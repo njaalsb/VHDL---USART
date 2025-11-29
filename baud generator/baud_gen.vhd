@@ -13,7 +13,6 @@ entity baud_gen is
         CLK_DIV : natural := 326 -- divider som gir 153 600 klokkefrekvens 
     );
     port (
-        ena : in std_logic; -- ena inn
         clk : in std_logic; -- clk inn 
         rst : in std_logic; --rst
         baud_clk : out std_logic
@@ -26,13 +25,11 @@ architecture RTL of baud_gen is
 begin
     p1: process(clk)
     begin
-        -- aktiv høy reset
-        if rst = '0' or ena = '0' then
+        -- aktiv lav reset
+        if rst = '0' then
             count0 <= 0;
             baud_clk <= '0';
-            -- Resetter telleren hvis rst er aktiv eller ena er ikke aktiv 
         elsif rising_edge(clk) then
-            -- inkrementerer counter til divider når den er ulik divider
             if count0 /= CLK_DIV-1 then
                 count0 <= count0 + 1;
                 baud_clk <= '0';
