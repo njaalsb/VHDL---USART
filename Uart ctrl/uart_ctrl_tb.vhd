@@ -6,10 +6,11 @@ entity uart_ctrl_tb is
 end uart_ctrl_tb;   
 
 architecture verifier of uart_ctrl_tb is
-    constant clk_per : time := 10 ns;  -- 100 Mhz klokke
+    constant clk_per : time := 20 ns;  -- 50 MHz klokke (matches debounce logic)
 
     component uart_ctrl 
         port (
+            mode      : in std_logic;   -- Mode switch
             clk  : in std_logic;                               -- Klokke
             rstn    : in std_logic;                            -- Aktiv lav reset
             rx_data   : in std_logic_vector(7 downto 0);        -- Mottatt data
@@ -27,13 +28,14 @@ architecture verifier of uart_ctrl_tb is
     end component uart_ctrl;
 
     -- DUT signaler
+    signal mode       : std_logic := '0';  -- Start in loopback mode
     signal clk     : std_logic := '0';
     signal rstn      : std_logic := '0';
     signal rx_data   : std_logic_vector(7 downto 0) := (others => '0');
     signal rx_valid : std_logic := '0';
     signal tx_busy : std_logic := '0';
-    signal btn_char : std_logic := '0';
-    signal btn_string : std_logic := '0';
+    signal btn_char : std_logic := '1';  -- Active-low: '1' = not pressed
+    signal btn_string : std_logic := '1';  -- Active-low: '1' = not pressed
 
     signal sevenseg_high  : std_logic_vector(7 downto 0);
     signal sevenseg_low   : std_logic_vector(7 downto 0);
@@ -45,6 +47,7 @@ begin
     -- Mapper DUT signaler til DUV
     i_uart_ctrl: component uart_ctrl
         port map (
+            mode      => mode,
             clk      => clk,
             rstn      => rstn,
             rx_data   => rx_data,
@@ -61,7 +64,7 @@ begin
 
     -- Klokke prosess
     p_clk: process
-    begin
+    begin   
         clk <= '0';
         wait for clk_per;
         clk <= '1';
@@ -79,57 +82,49 @@ begin
     p_main: process 
     begin
         -- vent til reset er ferdig
-        wait until rstn = '0';
-        wait until rising_edge(clk);
+        wait until rstn = '1';
+        wait for 100 ns;
 
-        btn_char <= '0';
-        rx_valid <= '0';
-        tx_busy <= '0';
-
-        wait until rising_edge(clk);
-        -- test 1: Send ASCII 'A' (0x41)
+        -- Test 1: Send ASCII 'A' (0x41) in loopback mode
         rx_data <= "01000001"; -- ASCII 'A' = 0x41
         rx_valid <= '1'; 
-        tx_busy <= '0';  
-
         wait until rising_edge(clk);
         rx_valid <= '0';
         wait until tx_start = '1';
         tx_busy <= '1';
         wait for 10 * clk_per;
         tx_busy <= '0';
+        wait for 5 * clk_per;
 
-        wait until rising_edge(clk);
-        -- Test 2: Send ASCII '1' (0x31)
+        -- Test 2: Send ASCII '1' (0x31) in loopback mode
         rx_data <= "00110001"; -- ASCII '1' = 0x31
         rx_valid <= '1';
-        tx_busy <= '0';
-
         wait until rising_edge(clk);
         rx_valid <= '0';
         wait until tx_start = '1';
         tx_busy <= '1';
         wait for 10 * clk_per;
         tx_busy <= '0';
+        wait for 5 * clk_per;
 
-        -- Test 3: knapp og enkelttegn
-        wait until rising_edge(clk);
-        btn_char <= '1';
-        wait until rising_edge(clk);
-        btn_char <= '0';
+        -- Switch to button mode
+        mode <= '1';
+        wait for 10 * clk_per;
+
+        -- Test 3: knapp og enkelttegn (active-low button press)
+        btn_char <= '0';  -- Press button (active low)
+        wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
+        btn_char <= '1';  -- Release button
         wait until tx_start = '1';
         tx_busy <= '1';
         wait for 10 * clk_per;
         tx_busy <= '0'; 
+        wait for 10 * clk_per;
 
-
-        -- TEST 4: streng med btn_string        
-        wait for 5 * clk_per;
-        
-        wait until rising_edge(clk);
-        btn_string <= '1';
-        wait until rising_edge(clk);
-        btn_string <= '0';
+        -- TEST 4: streng med btn_string (active-low button press)
+        btn_string <= '0';  -- Press button (active low)
+        wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
+        btn_string <= '1';  -- Release button
 
         -- Nå forventer vi 8 påfølgende tx_start-pulser (1 per tegn)
         for i in 0 to 7 loop 
