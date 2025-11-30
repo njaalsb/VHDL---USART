@@ -66,9 +66,9 @@ begin
     p_clk: process
     begin   
         clk <= '0';
-        wait for clk_per;
+        wait for clk_per/2;
         clk <= '1';
-        wait for clk_per;
+        wait for clk_per/2;
     end process p_clk;
 
     p_rst: process
@@ -115,6 +115,7 @@ begin
         btn_char <= '0';  -- Press button (active low)
         wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
         btn_char <= '1';  -- Release button
+        wait for 60000 * clk_per;
         wait until tx_start = '1';
         tx_busy <= '1';
         wait for 10 * clk_per;
@@ -125,7 +126,7 @@ begin
         btn_string <= '0';  -- Press button (active low)
         wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
         btn_string <= '1';  -- Release button
-
+	wait for 60000 * clk_per;
         -- Nå forventer vi 8 påfølgende tx_start-pulser (1 per tegn)
         for i in 0 to 7 loop 
             -- vent til uart sender neste tegn
