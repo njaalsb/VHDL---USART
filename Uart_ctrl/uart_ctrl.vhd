@@ -1,6 +1,6 @@
 -- Ctrl for UART kommunikasjon
 -- Mottar data via UART, viser mottatt ASCII-kode på 7-segment display
--- Sender også et forhåndsdefinert tegn ved mottak eller knappetrykk
+-- Sender forhåndsdefinert tegn og streng ved knappetrykk
 
 
 
@@ -11,7 +11,7 @@ use ieee.numeric_std.all;
 
 entity uart_ctrl is
     port (
-        mode      : in std_logic;   -- Bytter mellom loop-back og knapp-modus
+        mode      : in std_logic;                           -- Bytter mellom loop-back og knapp-modus
         clk       : in std_logic;                            -- Klokke
         rstn      : in std_logic;                            -- Aktiv lav reset
         rx_data   : in std_logic_vector(7 downto 0);         -- Mottatt data
@@ -35,8 +35,8 @@ end entity uart_ctrl;
 architecture rtl of uart_ctrl is
 
     
-    type state_type is (IDLE, BUSY, BUTTON);                                             -- Tilstander, vent og opptatt
-    signal state: state_type;                                    -- Nåværende tilstand
+    type state_type is (IDLE, BUSY, BUTTON);                                        -- Tilstander: vent, opptatt og BUTTON
+    signal state: state_type;                                    
 
    
     constant CHAR_TO_TX : std_logic_vector(7 downto 0) := x"55";  -- ASCII for 'U'
@@ -48,13 +48,13 @@ architecture rtl of uart_ctrl is
     signal btn_char_last: std_logic := '0';                                        -- Lagrer forrige knappestatus
     signal btn_string_last : std_logic := '0';
     
-    -- Debounce counters (50 MHz / 50000 = 1ms debounce time)
+    -- Knappe-prellere
     signal btn_char_stable: std_logic := '1';
     signal btn_string_stable: std_logic := '1';
     signal btn_char_cnt: integer range 0 to 50000 := 0;
     signal btn_string_cnt: integer range 0 to 50000 := 0;
 
-    type string_array is array (0 to 7) of std_logic_vector(7 downto 0);
+    type string_array is array (0 to 7) of std_logic_vector(7 downto 0);  -- Array for streng
     constant STRING_TO_TX   : string_array := (
         0 => x"48", -- 'H'
         1 => x"45", -- 'E
@@ -125,7 +125,7 @@ begin
         tx_data <= (others => '0');
 
     elsif rising_edge(clk) then
-        -- Debounce logic for btn_char
+        -- "Debounce logikk" for btn_char
         if btn_char = btn_char_stable then
             btn_char_cnt <= 0;
         else
@@ -137,7 +137,8 @@ begin
             end if;
         end if;
         
-        -- Debounce logic for btn_string
+
+        -- "Debounce" logikk for btn_string
         if btn_string = btn_string_stable then
             btn_string_cnt <= 0;
         else
@@ -153,7 +154,7 @@ begin
             when BUTTON =>
                 tx_start <= '0';
                 
-                -- Check if mode switch changed back to loopback mode
+                -- Sjekker hvis mode endret tilbake til loopback modus 
                 if mode = '0' then
                     state <= IDLE;
                     btn_char_last <= btn_char_stable;
@@ -168,7 +169,7 @@ begin
                     sending_string <= '0';
                     state <= BUSY;
 
-                -- Streng: knapp med falling edge (active-low button pressed)
+                -- Streng: knapp med falling edge (aktiv lav knapp trykket)
                 elsif (btn_string_stable = '0' and btn_string_last = '1') and (tx_busy = '0') then
                     sending_string <= '1';
                     string_idx <= 0;
@@ -177,7 +178,7 @@ begin
                     state <= BUSY;
                     
                 else
-                    -- Only update button state when no edge detected
+                    -- Kun oppdater BUTTON state når ingen kant oppdaget 
                     btn_char_last <= btn_char_stable;
                     btn_string_last <= btn_string_stable;
                 end if;
@@ -185,7 +186,7 @@ begin
             when IDLE =>
                 tx_start <= '0';
                 
-                -- Check if mode switch changed to button mode
+                -- Sjekk om mode endres til BUTTON state
                 if mode = '1' then
                     state <= BUTTON;
                     btn_char_last <= btn_char_stable;
@@ -208,7 +209,7 @@ begin
                        
                
             when BUSY =>
-                -- Hold tx_start high until transmitter acknowledges (tx_busy goes high)
+                -- Hold tx_start høy til transmitteren bekrefter
                 if tx_busy = '1' then
                     tx_start <= '0';
                 end if;
@@ -216,7 +217,7 @@ begin
                 if tx_busy = '0' then
 
                     if sending_string = '0' then    -- Det var bare ett tegn
-                       -- Return to appropriate state based on mode
+                       -- Gå tilbake til riktig state
                        if mode = '1' then
                            state <= BUTTON;
                        else
@@ -228,7 +229,7 @@ begin
                         if string_idx = 7 then
                         -- siste tegn i STRING_TO_TX er sendt
                             sending_string <= '0';
-                            -- Return to appropriate state based on mode
+                            -- Gå tilbake til riktig state
                             if mode = '1' then
                                 state <= BUTTON;
                             else
