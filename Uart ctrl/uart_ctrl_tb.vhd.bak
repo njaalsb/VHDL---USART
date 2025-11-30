@@ -19,9 +19,9 @@ architecture verifier of uart_ctrl_tb is
             btn_char : in std_logic;
             btn_string : in std_logic;
 
-            sevenseg_high  : out std_logic_vector(7 downto 0);         -- Øvre 7-segment
+            sevenseg_high  : out std_logic_vector(7 downto 0);         -- Ãvre 7-segment
             sevenseg_low  : out std_logic_vector(7 downto 0);         -- nedre 7-segment
-            led_pulse : out std_logic;                             -- Led på kortet (kort blink ved mottak)
+            led_pulse : out std_logic;                             -- Led pÃ¥ kortet (kort blink ved mottak)
             tx_data : out std_logic_vector(7 downto 0);
             tx_start : out std_logic
         );
@@ -130,7 +130,7 @@ begin
         ---------------------- Test 3: knapp og enkelttegn ------------------------------
         btn_char <= '0'; -- Trykk knapp
 
-        for i in 0 to 600 loop
+        for i in 0 to 60000 loop
             wait until rising_edge(clk); -- Debounce
         end loop;
 
@@ -146,18 +146,18 @@ begin
         ----------------------- TEST 4: streng med btn_string ------------------------------       
         
         btn_string <= '0';
-        for i in 0 to 6000 loop
+        for i in 0 to 60000 loop
             wait until rising_edge(clk);
         end loop;
         btn_string <= '1';
 
-        -- Nå forventer vi 8 påfølgende tx_start-pulser (1 per tegn)
+        -- NÃ¥ forventer vi 8 pÃ¥fÃ¸lgende tx_start-pulser (1 per tegn)
         for i in 0 to 7 loop 
             -- vent til uart sender neste tegn
             wait until tx_start = '1';
             tx_busy <= '1';
 
-            -- Simuler at uart bruker litt tid på å sende tegnet
+            -- Simuler at uart bruker litt tid pÃ¥ Ã¥ sende tegnet
             wait for 10 * clk_per;
             tx_busy <= '0';
 
@@ -170,5 +170,3 @@ begin
         wait;
     end process p_main;
 end architecture verifier;
-        
-    
