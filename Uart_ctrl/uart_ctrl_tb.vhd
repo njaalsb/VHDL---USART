@@ -66,15 +66,9 @@ begin
     p_clk: process
     begin   
         clk <= '0';
-<<<<<<< HEAD
-        wait for clk_per/2;
-        clk <= '1';
-        wait for clk_per/2;
-=======
         wait for clk_per / 2;
         clk <= '1';
         wait for clk_per / 2;
->>>>>>> 09e7a48b489c3043f4cef8293617d989b8008d34
     end process p_clk;
 
     p_rst: process
@@ -139,10 +133,6 @@ begin
         wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
         report "Test 3: Releasing btn_char" severity note;
         btn_char <= '1';  -- Release button
-<<<<<<< HEAD
-        wait for 60000 * clk_per;
-        wait until tx_start = '1';
-=======
         wait for 60000 * clk_per;  -- Wait for debounce to stabilize
         
         report "Test 3: Waiting for tx_start" severity note;
@@ -153,7 +143,6 @@ begin
         end loop;
         assert timeout < 10000 report "Test 3: Timeout waiting for tx_start after btn_char" severity error;
         
->>>>>>> 09e7a48b489c3043f4cef8293617d989b8008d34
         tx_busy <= '1';
         wait for 10 * clk_per;
         tx_busy <= '0'; 
@@ -165,12 +154,8 @@ begin
         wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
         report "Test 4: Releasing btn_string" severity note;
         btn_string <= '1';  -- Release button
-<<<<<<< HEAD
-	wait for 60000 * clk_per;
-=======
         wait for 60000 * clk_per;  -- Wait for debounce to stabilize
 
->>>>>>> 09e7a48b489c3043f4cef8293617d989b8008d34
         -- Nå forventer vi 8 påfølgende tx_start-pulser (1 per tegn)
         report "Test 4: Waiting for string transmission (8 characters)" severity note;
         for i in 0 to 7 loop 
