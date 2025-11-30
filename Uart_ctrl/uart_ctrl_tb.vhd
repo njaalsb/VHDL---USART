@@ -66,9 +66,15 @@ begin
     p_clk: process
     begin   
         clk <= '0';
+<<<<<<< HEAD
         wait for clk_per/2;
         clk <= '1';
         wait for clk_per/2;
+=======
+        wait for clk_per / 2;
+        clk <= '1';
+        wait for clk_per / 2;
+>>>>>>> 09e7a48b489c3043f4cef8293617d989b8008d34
     end process p_clk;
 
     p_rst: process
@@ -80,6 +86,7 @@ begin
     end process p_rst;
 
     p_main: process 
+        variable timeout : integer;
     begin
         -- vent til reset er ferdig
         wait until rstn = '1';
@@ -90,7 +97,14 @@ begin
         rx_valid <= '1'; 
         wait until rising_edge(clk);
         rx_valid <= '0';
-        wait until tx_start = '1';
+        
+        timeout := 0;
+        while tx_start /= '1' and timeout < 1000 loop
+            wait until rising_edge(clk);
+            timeout := timeout + 1;
+        end loop;
+        assert timeout < 1000 report "Test 1: Timeout waiting for tx_start" severity error;
+        
         tx_busy <= '1';
         wait for 10 * clk_per;
         tx_busy <= '0';
@@ -101,36 +115,73 @@ begin
         rx_valid <= '1';
         wait until rising_edge(clk);
         rx_valid <= '0';
-        wait until tx_start = '1';
+        
+        timeout := 0;
+        while tx_start /= '1' and timeout < 1000 loop
+            wait until rising_edge(clk);
+            timeout := timeout + 1;
+        end loop;
+        assert timeout < 1000 report "Test 2: Timeout waiting for tx_start" severity error;
+        
         tx_busy <= '1';
         wait for 10 * clk_per;
         tx_busy <= '0';
         wait for 5 * clk_per;
 
         -- Switch to button mode
+        report "Switching to button mode" severity note;
         mode <= '1';
-        wait for 10 * clk_per;
+        wait for 100 * clk_per;
 
         -- Test 3: knapp og enkelttegn (active-low button press)
+        report "Test 3: Pressing btn_char" severity note;
         btn_char <= '0';  -- Press button (active low)
         wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
+        report "Test 3: Releasing btn_char" severity note;
         btn_char <= '1';  -- Release button
+<<<<<<< HEAD
         wait for 60000 * clk_per;
         wait until tx_start = '1';
+=======
+        wait for 60000 * clk_per;  -- Wait for debounce to stabilize
+        
+        report "Test 3: Waiting for tx_start" severity note;
+        timeout := 0;
+        while tx_start /= '1' and timeout < 10000 loop
+            wait until rising_edge(clk);
+            timeout := timeout + 1;
+        end loop;
+        assert timeout < 10000 report "Test 3: Timeout waiting for tx_start after btn_char" severity error;
+        
+>>>>>>> 09e7a48b489c3043f4cef8293617d989b8008d34
         tx_busy <= '1';
         wait for 10 * clk_per;
         tx_busy <= '0'; 
         wait for 10 * clk_per;
 
         -- TEST 4: streng med btn_string (active-low button press)
+        report "Test 4: Pressing btn_string" severity note;
         btn_string <= '0';  -- Press button (active low)
         wait for 60000 * clk_per;  -- Hold long enough for debounce (>1ms)
+        report "Test 4: Releasing btn_string" severity note;
         btn_string <= '1';  -- Release button
+<<<<<<< HEAD
 	wait for 60000 * clk_per;
+=======
+        wait for 60000 * clk_per;  -- Wait for debounce to stabilize
+
+>>>>>>> 09e7a48b489c3043f4cef8293617d989b8008d34
         -- Nå forventer vi 8 påfølgende tx_start-pulser (1 per tegn)
+        report "Test 4: Waiting for string transmission (8 characters)" severity note;
         for i in 0 to 7 loop 
             -- vent til uart sender neste tegn
-            wait until tx_start = '1';
+            timeout := 0;
+            while tx_start /= '1' and timeout < 10000 loop
+                wait until rising_edge(clk);
+                timeout := timeout + 1;
+            end loop;
+            assert timeout < 10000 report "Test 4: Timeout waiting for character " & integer'image(i) severity error;
+            
             tx_busy <= '1';
 
             -- Simuler at uart bruker litt tid på å sende tegnet
