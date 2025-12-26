@@ -201,11 +201,11 @@ begin
                     state <= BUSY;
                     
                 else
-                    -- Only update button state when no action taken
+                    -- kun endre knapp når ingenting annet skjer
                     btn_char_last <= btn_char_stable;
                     btn_string_last <= btn_string_stable;
                 end if;
-                -- Enkelttegn: knapp med falling edge (active-low button pressed)
+                -- Enkelttegn: knapp med falling edge 
                        
                
             when BUSY =>
