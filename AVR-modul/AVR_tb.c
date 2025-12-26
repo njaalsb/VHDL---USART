@@ -1,5 +1,5 @@
 /* 
- * File:   newmain.c
+ * File:   main.c
  * Author: bruhe
  *
  * Denne koden er skrevet spesifikt for å sende en karakter fra USART3 til USART1
@@ -11,7 +11,7 @@
  * USART1 Rx - PC1
  * 
  * 
- * Created on January 20, 2025, 12:05 PM
+ * Created on November 29, 2025, 12:05 PM
  */
 #define F_CPU 4000000UL
 #define USART3_BAUD_RATE(BAUD_RATE) ((float)(F_CPU * 64 / (16 *(float)BAUD_RATE)) + 0.5)
