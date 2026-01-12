@@ -14,7 +14,7 @@ Implementasjonen består av følgende delsystemer:
 - Baud generator
 - Sampler
 - Transmitter 
-- Uart control
+- Uart CTRL
 
 ![alt text](Bilder/systemoversikt.png)
 
